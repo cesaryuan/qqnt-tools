@@ -10,3 +10,11 @@
 1. 下载并解压项目到QQNT的安装目录
 2. 双击运行`install.bat`
 3. 重启QQNT
+
+或者在QQNT安装目录下启动Powershell
+
+```powershell
+git clone https://github.com/cesaryuan/qqnt-tools
+cd qqnt-tools
+. install.ps1
+```
