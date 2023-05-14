@@ -3,7 +3,9 @@
 为QQNT添加一些实用的功能，目前包括：
 
 <details><summary>在聊天窗口中合并相同用户的连续消息</summary>
+
 ![](docs/images/README/20230514200253.png)
+
 </details>
 
 ## 安装
