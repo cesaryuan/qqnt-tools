@@ -1,3 +1,5 @@
+// import { ComponentInternalInstance } from "vue";
+
 namespace QQ {
     interface MessageProps {
         isNewAio: boolean;
@@ -146,14 +148,16 @@ interface QQPlugin {
     unload: () => void;
 }
 
+type RecordedVueApp = WeakRef<ComponentInternalInstance> | WeakSet<ComponentInternalInstance> | undefined;
+
 interface Element {
     style: HTMLElementStyle;
-    __vue__: any;
+    __vue__: WeakSet<ComponentInternalInstance> | undefined;
     messageProps?: QQ.MessageProps;
 }
 
 interface Window {
     PluginsEnabled: QQPlugin[];
     __RUNED__: boolean;
-    __vueHooked: WeakMap<Element, any>;
+    __vueHooked: WeakMap<Element, ComponentInternalInstance | ComponentInternalInstance[]>;
 }

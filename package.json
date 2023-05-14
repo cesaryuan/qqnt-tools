@@ -60,6 +60,7 @@
     "sumchecker": "^3.0.1",
     "type-fest": "^0.13.1",
     "universalify": "^0.1.2",
+    "vue": "^3.3.2",
     "wrappy": "^1.0.2",
     "yallist": "^4.0.0",
     "yauzl": "^2.10.0"

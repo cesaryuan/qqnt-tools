@@ -44,20 +44,21 @@ let proxyBrowserWindow = new Proxy(electron_1.default.BrowserWindow, {
             let url = window.webContents.getURL();
             log("frame-created", url);
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            let r = await window.webContents.executeJavaScript(fs_1.default.readFileSync(path_1.default.resolve(__dirname, "qq-page.js"), "utf-8"));
+            let r = await window.webContents.executeJavaScript(fs_1.default.readFileSync(path_1.default.resolve(__dirname, "qq-page.js"), "utf-8").trim().replace(/export \{\};/, ""));
+            console.log("executeJavaScript", r);
             window.webContents.insertCSS(`body > div { font-family: Color Emoji,PingFang SC,system-ui,PingFangSC-Regular,Microsoft YaHei,Hiragino Sans GB,Heiti SC,WenQuanYi Micro Hei,sans-serif,Apple Braille; }
                 #ml-root > div.ml-list.list > .ml-item > .message {
                     padding-bottom: 0px;
                 }`);
         });
-        // window.webContents.emit = new Proxy(window.webContents.emit, {
-        //     apply: function (target, thisArg, argumentsList: [string, ...any[]]) {
-        //         if(argumentsList[0] !== 'input-event' && !argumentsList[0].includes('ipc-')) {
-        //             log("webContents emit ", window.webContents.id, argumentsList[0]);
-        //         }
-        //         return Reflect.apply(target, thisArg, argumentsList);
-        //     },
-        // });
+        window.webContents.emit = new Proxy(window.webContents.emit, {
+            apply: function (target, thisArg, argumentsList) {
+                if (argumentsList[0] !== 'input-event' && !argumentsList[0].includes('ipc-')) {
+                    log("webContents emit ", window.webContents.id, argumentsList[0]);
+                }
+                return Reflect.apply(target, thisArg, argumentsList);
+            },
+        });
         return window;
         return new Proxy(window, {
             get: function (target, propKey, receiver) {
@@ -81,26 +82,14 @@ module_1.default.prototype.require = new Proxy(module_1.default.prototype.requir
         if (argumentsList[0] == "electron") {
             return new Proxy(electron_1.default, {
                 get: function (target, propKey, receiver) {
-                    // log('electron get ', propKey)
-                    // note: 之所以不在前面直接修改electron.BrowserWindow，是因为electron.BrowserWindow的descriptor的configurable为false，无法修改
+                    // note: 之所以不在前面直接修改 electron.BrowserWindow，是因为 electron.BrowserWindow 的 descriptor 的 configurable 为 false 且 set 为 undefined，所以无法修改
                     if (propKey === "BrowserWindow") {
                         return proxyBrowserWindow;
                     }
                     return Reflect.get(target, propKey, receiver);
-                },
-                set: function (target, propKey, value, receiver) {
-                    log("electron set ", propKey);
-                    return Reflect.set(target, propKey, value, receiver);
-                },
+                }
             });
         }
-        else if (argumentsList[0] === "module") {
-            return module_1.default;
-        }
         return Reflect.apply(target, thisArg, argumentsList);
-    },
-    get: function (target, propKey, receiver) {
-        log("Require get ", propKey);
-        return Reflect.get(target, propKey, receiver);
-    },
+    }
 });
