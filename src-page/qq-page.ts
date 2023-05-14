@@ -194,12 +194,11 @@ function main(){
     
         function recordDOM(el: Element, app: ComponentInternalInstance) {
             //将app挂载到DOMelement.__vue__
-            el.__vue__ = app as any as WeakSet<ComponentInternalInstance>;
-            // if (el.__vue__) {
-            //     el.__vue__.add(app);
-            // } else {
-            //     el.__vue__ = new WeakSet([app]);
-            // }
+            if (el.__vue__) {
+                el.__vue__.add(app);
+            } else {
+                el.__vue__ = new WeakSet([app]);
+            }
         }
         return vueHooked;
     })();
