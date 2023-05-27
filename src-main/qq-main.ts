@@ -42,12 +42,7 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
             let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "qq-page.js"), "utf-8").trim().replace(/export \{\};/, ""));
             console.log("executeJavaScript", r);
-            window.webContents.insertCSS(
-                `body > div { font-family: Color Emoji,PingFang SC,system-ui,PingFangSC-Regular,Microsoft YaHei,Hiragino Sans GB,Heiti SC,WenQuanYi Micro Hei,sans-serif,Apple Braille; }
-                #ml-root > div.ml-list.list > .ml-item > .message {
-                    padding-bottom: 0px;
-                }`
-            ); 
+            window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "inject.css"), "utf-8").trim()); 
         });
         window.webContents.emit = new Proxy(window.webContents.emit, {
             apply: function (target, thisArg, argumentsList: [string, ...any[]]) {
