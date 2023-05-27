@@ -37,17 +37,24 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             }
         }); 
         window.webContents.on("frame-created", async (event, {frame}) => {
-            let url = window.webContents.getURL();
-            log("frame-created", url);
+            // let url = window.webContents.getURL();
+            // log("frame-created", url);
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "qq-page.js"), "utf-8").trim().replace(/export \{\};/, ""));
+            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "base.js"), "utf-8").trim().replace(/export \{\};/, ""));
             console.log("executeJavaScript", r);
             window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "inject.css"), "utf-8").trim()); 
+        });
+        window.webContents.on("did-navigate-in-page", async (event, url, isMainFrame, frameProcessId, frameRoutingId) => {
+            log("did-navigate-in-page", url);
+            let urlHash = new URL(url).hash;
+            if (urlHash === "#/setting/settings/common") {
+            }
         });
         window.webContents.emit = new Proxy(window.webContents.emit, {
             apply: function (target, thisArg, argumentsList: [string, ...any[]]) {
                 if(argumentsList[0] !== 'input-event' && !argumentsList[0].includes('ipc-')) {
-                    log("webContents emit ", window.webContents.id, argumentsList[0]);
+                    let url = window.webContents.getURL();
+                    log("webContents", window.webContents.id, "emit", argumentsList[0], "url", url);
                 }
                 return Reflect.apply(target, thisArg, argumentsList);
             },
