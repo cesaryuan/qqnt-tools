@@ -66,10 +66,12 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "electron": "^24.3.0"
+    "electron": "^24.3.0",
+    "typescript": "^5.0.4"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b && cp src-page/inject.css dist/inject.css;"
   },
   "author": "",
   "license": "ISC"
