@@ -21,3 +21,7 @@ git clone https://github.com/cesaryuan/qqnt-tools
 cd qqnt-tools
 . install.ps1
 ```
+
+## 贡献
+
+- 运行`npm run build`编译项目
