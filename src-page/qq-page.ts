@@ -112,20 +112,7 @@ function main(){
         }
         return vueHooked;
     })();
-    // for (const plugin of window.PluginsEnabled ?? []) {
-    //     plugin.unload();
-    // }
-    // window.PluginsEnabled = [
-    //     new PluginMessageLikeTelegram()
-    // ];
-    // for (const plugin of window.PluginsEnabled) {
-    //     plugin.load();
-    // }
-    // if(location.hash == "#/main/message") {
-    //     import("./plugins/PluginMessageLikeTelegram").then((module) => {
-    //         new module.default().load();
-    //     });
-    // }
+
     window.onQQPageLoaded = function() {
         log("hashchange", location.hash);
         if (location.hash == "#/blank") {
