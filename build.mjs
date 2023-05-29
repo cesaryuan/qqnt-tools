@@ -31,14 +31,8 @@ if (process.argv.length > 2) {
             entry: "./src-page/index.ts",
             name: "qqntTools",
             fileName: "index",
-            formats: ["iife", "umd"],
-        },
-        // {
-        //     entry: "./src-main/qq-main.ts",
-        //     name: "base",
-        //     fileName: "qq-main",
-        //     formats: ["cjs"],
-        // },
+            formats: ["iife"],
+        }
     ];
 
     // build

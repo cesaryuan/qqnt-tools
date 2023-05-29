@@ -53,6 +53,7 @@
     "resolve-alpn": "^1.2.1",
     "responselike": "^2.0.1",
     "roarr": "^2.15.4",
+    "rollup-plugin-copy": "^3.4.0",
     "semver": "^6.3.0",
     "semver-compare": "^1.0.0",
     "serialize-error": "^7.0.1",
@@ -73,7 +74,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -b && node ./build.mjs"
+    "build": "vite build && tsc -b"
   },
   "author": "",
   "license": "ISC"

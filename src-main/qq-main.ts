@@ -40,12 +40,13 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             // let url = window.webContents.getURL();
             // log("frame-created", url);
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "index.iife.js"), "utf-8").trim().replace(/export \{\};/, ""));
-            console.log("executeJavaScript", r);
-            window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "inject.css"), "utf-8").trim()); 
+            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "qq-page.js"), "utf-8").trim().replace(/export \{\};/, ""));
+            log("executeJavaScript", r);
+            window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "css/inject.css"), "utf-8").trim()); 
         });
         window.webContents.on("did-navigate-in-page", async (event, url, isMainFrame, frameProcessId, frameRoutingId) => {
             log("did-navigate-in-page", url);
+            await window.webContents.executeJavaScript('window?.onQQPageLoaded?.();'); // 通知 qq-page.js 重新执行 'window.onhashchange();
             let urlHash = new URL(url).hash;
             if (urlHash === "#/setting/settings/common") {
             }

@@ -112,24 +112,37 @@ function main(){
         }
         return vueHooked;
     })();
-    for (const plugin of window.PluginsEnabled ?? []) {
-        plugin.unload();
-    }
-    window.PluginsEnabled = [
-        new PluginMessageLikeTelegram()
-    ];
-    for (const plugin of window.PluginsEnabled) {
-        plugin.load();
-    }
-    // window.addEventListener('hashchange', function() {
-    //     log("hashchange", location.hash);
-    //     console.log(location.hash);
-    //     if(location.hash == "#/main/message") {
-    //         import("./plugins/PluginMessageLikeTelegram").then((module) => {
-    //             new module.default().load();
-    //         });
-    //     }
-    // });
+    // for (const plugin of window.PluginsEnabled ?? []) {
+    //     plugin.unload();
+    // }
+    // window.PluginsEnabled = [
+    //     new PluginMessageLikeTelegram()
+    // ];
+    // for (const plugin of window.PluginsEnabled) {
+    //     plugin.load();
+    // }
+    // if(location.hash == "#/main/message") {
+    //     import("./plugins/PluginMessageLikeTelegram").then((module) => {
+    //         new module.default().load();
+    //     });
+    // }
+    window.onQQPageLoaded = function() {
+        log("hashchange", location.hash);
+        if (location.hash == "#/blank") {
+            return;
+        }
+        // 一旦切换到其他页面，就说明这个Window加载完成了，就可以根据url加载插件了
+        window.onQQPageLoaded = undefined;
+        if(location.hash == "#/main/message") {
+            import("./plugins/PluginMessageLikeTelegram").then((module) => {
+                new module.default().load();
+            });
+        } else if (location.hash == "#/setting/settings/common") {
+            // import("./plugins/Setting").then((module) => {
+            //     new module.default().load();
+            // });
+        }
+    };
 }
 try {
     main();

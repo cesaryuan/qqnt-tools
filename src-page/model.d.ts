@@ -160,4 +160,5 @@ interface Window {
     PluginsEnabled: QQPlugin[];
     __RUNED__: boolean;
     __vueHooked: WeakMap<Element, ComponentInternalInstance | ComponentInternalInstance[]>;
+    onQQPageLoaded?: () => void;
 }
