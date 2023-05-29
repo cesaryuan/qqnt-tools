@@ -40,7 +40,7 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             // let url = window.webContents.getURL();
             // log("frame-created", url);
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "base.js"), "utf-8").trim().replace(/export \{\};/, ""));
+            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "index.iife.js"), "utf-8").trim().replace(/export \{\};/, ""));
             console.log("executeJavaScript", r);
             window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "inject.css"), "utf-8").trim()); 
         });

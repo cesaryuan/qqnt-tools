@@ -1,5 +1,5 @@
 import type { ComponentInternalInstance } from "vue";
-import { BasePlugin, waitForElement } from "./base"
+import { BasePlugin, waitForElement } from "../base"
 class PluginMessageLikeTelegram extends BasePlugin {
     name = "MessageMergeLikeTelegram";
     description = "合并相同用户发送的消息";

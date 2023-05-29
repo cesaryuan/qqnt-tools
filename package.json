@@ -67,11 +67,13 @@
   },
   "devDependencies": {
     "electron": "^24.3.0",
-    "typescript": "^5.0.4"
+    "rollup-plugin-analyzer": "^4.0.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.3.9"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -b && cp src-page/inject.css dist/inject.css;"
+    "build": "tsc -b && node ./build.mjs"
   },
   "author": "",
   "license": "ISC"
