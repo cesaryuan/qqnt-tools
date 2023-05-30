@@ -22,7 +22,7 @@
 
 ## 安装
 
-1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到QQNT安装目录
+1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到QQNT安装目录下的文件夹`<QQNT>\qqnt-tools`
 2. 双击运行`install.bat`
 3. 重启QQNT
 
