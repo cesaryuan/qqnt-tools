@@ -20,7 +20,7 @@ export default class ShowMsgTime extends BasePlugin {
                     } else {
                         this.addMsgTime(mlList)
                         // 在这里添加你的代码
-                        const config = { childList: true , subtree: true};
+                        const config = { childList: true};
                         this.observer = new MutationObserver((mutationsList, observer) => {
                             for (const mutation of mutationsList) {
                                 if (mutation.type === "childList") {

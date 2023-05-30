@@ -8,7 +8,7 @@ class PluginMessageLikeTelegram extends BasePlugin {
     load() {
         this.unload();
         waitForElement(".ml-list", (mlList) => {
-            const config = { childList: true, subtree: true };
+            const config = { childList: true};
             this.observer = new MutationObserver((mutationsList, observer) => {
                 for (const mutation of mutationsList) {
                     if (mutation.type === "childList") {
