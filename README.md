@@ -22,7 +22,7 @@
 
 ## 安装
 
-1. 下载并解压项目到QQNT的安装目录
+1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到QQNT安装目录
 2. 双击运行`install.bat`
 3. 重启QQNT
 
@@ -31,6 +31,8 @@
 ```powershell
 git clone https://github.com/cesaryuan/qqnt-tools
 cd qqnt-tools
+npm install
+npm run build
 . install.ps1
 ```
 
