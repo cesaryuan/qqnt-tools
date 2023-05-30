@@ -5,21 +5,18 @@ class PluginMessageLikeTelegram extends BasePlugin {
     description = "合并相同用户发送的消息";
     version = "1.0.0";
     observer: MutationObserver | null = null;
-    load() {
+    async load() {
         this.unload();
-        waitForElement(".ml-list", (mlList) => {
-            const config = { childList: true};
-            this.observer = new MutationObserver((mutationsList, observer) => {
-                for (const mutation of mutationsList) {
-                    if (mutation.type === "childList") {
-                        this.mergeMessage(mlList)
-                        break;
-                    }
+        let mlList = await waitForElement(".ml-list");
+        this.observer = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === "childList") {
+                    this.mergeMessage(mlList)
+                    break;
                 }
-            });
-            // 开始观察目标节点
-            this.observer.observe(mlList, config);
+            }
         });
+        this.observer.observe(mlList, { childList: true});
     }
     unload() {
         this.observer?.disconnect();

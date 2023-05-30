@@ -8,24 +8,32 @@ export function logError(...args: any[]) {
     console.error("QQNT-Tools", ...args);
 }
 
-export function waitForElement(selector: string, callback: (el: Element) => void) {
-    const el = document.querySelector(selector);
-    if (el) {
-        callback(el);
-    } else {
-        let called = false;
-        const observer = new MutationObserver((mutations) => {
-            const el = document.querySelector(selector);
-            if (el) {
-                observer.disconnect();
-                if (!called) {
-                    called = true;
-                    callback(el);
-                }
+export async function waitForElement(selector: string, action?: (el: Element) => void) {
+    return new Promise<Element>((resolve) => {
+        const el = document.querySelector(selector);
+        let callback = (el: Element) => {
+            resolve(el);
+            if (action) {
+                action(el);
             }
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    }
+        };
+        if (el) {
+            callback(el);
+        } else {
+            let called = false;
+            const observer = new MutationObserver((mutations) => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    observer.disconnect();
+                    if (!called) {
+                        called = true;
+                        callback(el);
+                    }
+                }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+        }
+    });
 }
 
 export class BasePlugin implements QQPlugin {

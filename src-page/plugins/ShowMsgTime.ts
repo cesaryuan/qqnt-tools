@@ -5,40 +5,43 @@ export default class ShowMsgTime extends BasePlugin {
     description = "在用户按下鼠标中键时显示消息发送时间";
     version = "1.0.0";
     observer: MutationObserver | null = null;
-    load() {
+    mlList: Element | null = null;
+    async load() {
         this.unload();
-        waitForElement(".ml-list", (mlList) => {
-            // 添加 mousedown 事件处理函数
-            (mlList as HTMLElement).addEventListener('mousedown', (event: MouseEvent) => {
-                // 检查是否是鼠标中键
-                if (event.button === 1) {
-                    log('Mouse middle button is pressed');
-                    if (this.observer) {
-                        this.observer.disconnect();
-                        this.observer = null;
-                        this.removeMsgTime(mlList);
-                    } else {
-                        this.addMsgTime(mlList)
-                        // 在这里添加你的代码
-                        const config = { childList: true};
-                        this.observer = new MutationObserver((mutationsList, observer) => {
-                            for (const mutation of mutationsList) {
-                                if (mutation.type === "childList") {
-                                    this.addMsgTime(mlList)
-                                    break;
-                                }
-                            }
-                        });
-                        // 开始观察目标节点
-                        this.observer.observe(mlList, config);
-                    }
-                    event.preventDefault();
-                }
-            });
-        });
+        this.mlList = await waitForElement(".ml-list");
+        // 添加 mousedown 事件处理函数
+        (this.mlList as HTMLElement).addEventListener('mousedown', this.midBtnDown);
     }
     unload() {
         this.observer?.disconnect();
+        (this.mlList as HTMLElement).removeEventListener('mousedown', this.midBtnDown);
+    }
+    midBtnDown(event: MouseEvent){
+        let mlList = event.target as Element;
+        // 检查是否是鼠标中键
+        if (event.button === 1) {
+            log('Mouse middle button is pressed');
+            if (this.observer) {
+                this.observer.disconnect();
+                this.observer = null;
+                this.removeMsgTime(mlList);
+            } else {
+                this.addMsgTime(mlList)
+                // 在这里添加你的代码
+                const config = { childList: true};
+                this.observer = new MutationObserver((mutationsList, observer) => {
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === "childList") {
+                            this.addMsgTime(mlList)
+                            break;
+                        }
+                    }
+                });
+                // 开始观察目标节点
+                this.observer.observe(mlList, config);
+            }
+            event.preventDefault();
+        }
     }
     addMsgTime(mlList: Element) {
         let dataAttr = Array.from(mlList?.querySelector(".message__timestamp")?.attributes!).find((i) => i.name.startsWith("data-v-"))?.name;
