@@ -122,6 +122,11 @@ function main(){
         window.onQQPageLoaded = undefined;
         if(location.hash == "#/main/message") {
             import("./plugins/PluginMessageLikeTelegram").then((module) => {
+                log("LoadPlugin", "PluginMessageLikeTelegram");
+                new module.default().load();
+            });
+            import("./plugins/ShowMsgTime").then((module) => {
+                log("LoadPlugin", "ShowMsgTime");
                 new module.default().load();
             });
         } else if (location.hash == "#/setting/settings/common") {

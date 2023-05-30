@@ -8,6 +8,18 @@
 
 </details>
 
+<details><summary>Open DevTools When press F12</summary>
+
+![](docs/images/README/20230530165038.png)
+
+</details>
+
+<details><summary>按鼠标中键显示消息发送时间</summary>
+
+![](docs/images/README/20230530164658.png)
+
+</details>
+
 ## 安装
 
 1. 下载并解压项目到QQNT的安装目录
