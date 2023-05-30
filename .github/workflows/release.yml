@@ -18,7 +18,7 @@ jobs:
 
       - name: Compress
         shell: pwsh
-        run: Compress-Archive dist, .\install.* -Force -DestinationPath qqnt-tools.zip
+        run: Compress-Archive dist, docs, README.md, .\install.* -Force -DestinationPath qqnt-tools.zip
 
       - name: release dist/
         uses: softprops/action-gh-release@v1
