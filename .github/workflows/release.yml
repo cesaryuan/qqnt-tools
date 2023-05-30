@@ -17,7 +17,7 @@ jobs:
         run: npm run build
 
       - name: Compress
-        shell: powershell
+        shell: pwsh
         run: Compress-Archive dist, .\install.* -Force -DestinationPath qqnt-tools.zip
 
       - name: release dist/
