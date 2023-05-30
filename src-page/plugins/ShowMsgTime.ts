@@ -5,19 +5,19 @@ export default class ShowMsgTime extends BasePlugin {
     description = "在用户按下鼠标中键时显示消息发送时间";
     version = "1.0.0";
     observer: MutationObserver | null = null;
-    mlList: Element | null = null;
+    mlList: HTMLElement | null = null;
     async load() {
-        this.unload();
-        this.mlList = await waitForElement(".ml-list");
+        this.mlList = await waitForElement(".ml-list") as HTMLElement;
         // 添加 mousedown 事件处理函数
-        (this.mlList as HTMLElement).addEventListener('mousedown', this.midBtnDown);
+        this.midBtnDown = this.midBtnDown.bind(this);
+        this.mlList.addEventListener('mousedown', this.midBtnDown);
     }
     unload() {
         this.observer?.disconnect();
-        (this.mlList as HTMLElement).removeEventListener('mousedown', this.midBtnDown);
+        this.mlList?.removeEventListener('mousedown', this.midBtnDown);
     }
     midBtnDown(event: MouseEvent){
-        let mlList = event.target as Element;
+        let mlList = event.currentTarget as HTMLElement;
         // 检查是否是鼠标中键
         if (event.button === 1) {
             log('Mouse middle button is pressed');
@@ -51,7 +51,7 @@ export default class ShowMsgTime extends BasePlugin {
             if (!messageDiv) {
                 throw new Error("messageDiv not found");
             }
-            let messageProps: QQ.MessageProps = (BasePlugin._vueHooked.get(messageDiv) as ComponentInternalInstance[])[0]?.props as unknown as QQ.MessageProps;
+            let messageProps: QQ.MessageProps = (window._vueHooked.get(messageDiv) as ComponentInternalInstance[])[0]?.props as unknown as QQ.MessageProps;
             item.messageProps = messageProps;
             item.setAttribute("data-time", new Date(Number.parseInt(messageProps?.msgRecord?.msgTime ?? "0") * 1000).toLocaleString())
             if (

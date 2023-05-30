@@ -40,7 +40,7 @@ export class BasePlugin implements QQPlugin {
     name = "BasePlugin";
     description = "BasePlugin";
     version = "1.0.0";
-    static _vueHooked: WeakMap<Element, ComponentInternalInstance[]>;
+    // static _vueHooked: WeakMap<Element, ComponentInternalInstance[]>;
     load() {}
     unload() {}
 }

@@ -10,6 +10,7 @@ import electron from "electron";
 import fs from "fs";
 import path from "path";
 import Module from "module";
+import { EventEmitter } from "stream";
 // Module.prototype = new Proxy(Module.prototype, {
 //     get: function(target, propKey, receiver) {
 //         log('Module get ', propKey)
@@ -20,6 +21,29 @@ import Module from "module";
 //         return Reflect.set(target, propKey, value, receiver);
 //     }
 // });
+
+
+
+class FileWatcher extends EventEmitter {
+    constructor(filePath: string) {
+        super();
+        this.filePath = filePath;
+        this.watch();
+    }
+    filePath: string;
+    watcher: fs.FSWatcher | null = null;
+    watch() {
+        if (this.watcher) {
+            this.watcher.close();
+        }
+        fs.watch(this.filePath, (eventType, filename) => {
+            if (eventType === 'change') {
+                this.emit('change', this.filePath);
+            }
+        });
+    }
+}
+let qqPageJSWatcher = new FileWatcher(path.resolve(__dirname, "qq-page.js"));
 let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
     construct: function (target, argumentsList, newTarget) {
         log("BrowserWindow construct", argumentsList);
@@ -39,9 +63,15 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
         window.webContents.on("frame-created", async (event, {frame}) => {
             // let url = window.webContents.getURL();
             // log("frame-created", url);
+            // window.webContents.openDevTools();
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            let r = await window.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname, "qq-page.js"), "utf-8").trim().replace(/export \{\};/, ""));
-            log("executeJavaScript", r);
+            qqPageJSWatcher.on('change', async (filePath) => {
+                log('qq-page.js changed', filePath);
+                let r = await window.webContents.executeJavaScript(fs.readFileSync(filePath, "utf-8").trim().replace(/export \{\};/, ""));
+                log("executeJavaScript", r);
+            });
+            // 第一次加载 qq-page.js，需要手动执行一次
+            qqPageJSWatcher.emit('change', qqPageJSWatcher.filePath);
             window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "css/inject.css"), "utf-8").trim()); 
         });
         window.webContents.on("did-navigate-in-page", async (event, url, isMainFrame, frameProcessId, frameRoutingId) => {

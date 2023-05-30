@@ -6,7 +6,6 @@ class PluginMessageLikeTelegram extends BasePlugin {
     version = "1.0.0";
     observer: MutationObserver | null = null;
     async load() {
-        this.unload();
         let mlList = await waitForElement(".ml-list");
         this.observer = new MutationObserver((mutationsList, observer) => {
             for (const mutation of mutationsList) {
@@ -29,7 +28,7 @@ class PluginMessageLikeTelegram extends BasePlugin {
             if (!messageDiv) {
                 throw new Error("messageDiv not found");
             }
-            let messageProps: QQ.MessageProps = (BasePlugin._vueHooked.get(messageDiv) as ComponentInternalInstance[])[0]?.props as unknown as QQ.MessageProps;
+            let messageProps: QQ.MessageProps = (window._vueHooked.get(messageDiv) as ComponentInternalInstance[])[0]?.props as unknown as QQ.MessageProps;
             item.messageProps = messageProps;
             let uid = messageProps?.msgRecord?.senderUid;
             // add uid to item attribute

@@ -1,16 +1,10 @@
 import type { ComponentInternalInstance, RendererNode } from "vue";
 import { BasePlugin, log } from "./base";
-import PluginMessageLikeTelegram from "./plugins/PluginMessageLikeTelegram";
 
 function main(){
-    if(window.__RUNED__) {
-        log("Already runned");
-        return;
-    } 
     log("Start");
-    window.__RUNED__ = true;
 
-    BasePlugin._vueHooked = (function () {
+    window._vueHooked = window._vueHooked || (function () {
         // ==UserScript==
         // @name         Hook Vue3 app
         // @version      1.0.3
@@ -112,29 +106,39 @@ function main(){
         }
         return vueHooked;
     })();
-
-    window.onQQPageLoaded = function() {
+    window.PluginsEnabled = window.PluginsEnabled || [];
+    window.onQQPageLoaded = window.onQQPageLoaded || function() {
         log("hashchange", location.hash);
         if (location.hash == "#/blank") {
             return;
         }
         // 一旦切换到其他页面，就说明这个Window加载完成了，就可以根据url加载插件了
         window.onQQPageLoaded = undefined;
+        // 1. 先unload所有插件(如果有的话，比如热重载)
+        window.PluginsEnabled.forEach((plugin: BasePlugin) => {
+            plugin.unload();
+        });
+        // 2. 根据url决定加载哪些插件
         if(location.hash == "#/main/message") {
             import("./plugins/PluginMessageLikeTelegram").then((module) => {
-                log("LoadPlugin", "PluginMessageLikeTelegram");
-                new module.default().load();
+                let plugin = new module.default();
+                plugin.load();
+                window.PluginsEnabled.push(plugin);
             });
             import("./plugins/ShowMsgTime").then((module) => {
-                log("LoadPlugin", "ShowMsgTime");
-                new module.default().load();
+                let plugin = new module.default();
+                plugin.load();
+                window.PluginsEnabled.push(plugin);
             });
         } else if (location.hash == "#/setting/settings/common") {
             // import("./plugins/Setting").then((module) => {
             //     new module.default().load();
             // });
         }
+
     };
+    // 用于热重载
+    window.onQQPageLoaded();
 }
 try {
     main();
