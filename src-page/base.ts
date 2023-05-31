@@ -50,3 +50,7 @@ export function htmlStringToElement(html: string) {
     template.innerHTML = html;
     return template.content.firstChild as HTMLElement;
 }
+
+export interface VueComponent extends ComponentInternalInstance {
+    bum: (() => void)[];
+}

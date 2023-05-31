@@ -1,4 +1,6 @@
-import type { ComponentInternalInstance, RendererNode } from "vue";
+import type { RendererNode } from "vue";
+import { VueComponent } from "../base";
+
 
 export function hookVue3App() {
     // ==UserScript==
@@ -14,11 +16,11 @@ export function hookVue3App() {
     // const realProxy = $window.Proxy; //劫持Proxy
 
     let vueUnhooked = new WeakSet(); //以WeakSet存储已获取到但未未劫持的app对象，作为debug用变量，正常情况WeakSet应为空
-    let vueHooked = new WeakMap<Element, ComponentInternalInstance[]>(); //以WeakMap存储已劫持的app对象，DOM元素为key，app对象为value
+    let vueHooked = new WeakMap<Element, VueComponent[]>(); //以WeakMap存储已劫持的app对象，DOM元素为key，app对象为value
 
     $window.Proxy =  new Proxy($window.Proxy, {
         construct(target, args, newTarget) {
-            let app: ComponentInternalInstance | null = args[0]?._;
+            let app: VueComponent | null = args[0]?._;
             if (app?.uid && app.uid >= 0) {
                 //判断app
                 let el = app.vnode.el;
@@ -58,7 +60,7 @@ export function hookVue3App() {
         });
     }
 
-    function watch_isUnmounted(app: ComponentInternalInstance) {
+    function watch_isUnmounted(app: VueComponent) {
         //观察isUnmounted 变动时销毁引用
         if (!app.bum) app.bum = [];
         app.bum.push(function () {
@@ -79,7 +81,7 @@ export function hookVue3App() {
         });
     }
 
-    function recordVue(el: Element, app: ComponentInternalInstance) {
+    function recordVue(el: Element, app: VueComponent) {
         //将app记录到WeakMap中
         vueUnhooked.delete(app);
         let value = vueHooked.get(el);
@@ -92,7 +94,7 @@ export function hookVue3App() {
         }
     }
 
-    function recordDOM(el: Element, app: ComponentInternalInstance) {
+    function recordDOM(el: Element, app: VueComponent) {
         //将app挂载到DOMelement.__vue__
         if (el.__vue__) {
             el.__vue__.add(app);
