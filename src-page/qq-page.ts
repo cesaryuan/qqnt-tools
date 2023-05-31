@@ -27,9 +27,11 @@ function main(){
                 plugin.load();
                 window.PluginsEnabled.push(plugin);
             });
-        } else if (location.hash == "#/setting/settings/common") {
+        } else if (location.hash.startsWith("#/setting/settings")) {
             // import("./plugins/Setting").then((module) => {
-            //     new module.default().load();
+            //     let plugin = new module.default();
+            //     plugin.load();
+            //     window.PluginsEnabled.push(plugin);
             // });
         }
 
