@@ -76,6 +76,7 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             });
             
             qqPageCSSWatcher.callAndOnchange(async (filePath) => {
+                log('inject.css changed', filePath);
                 let css = fs.readFileSync(filePath, "utf-8").trim();
                 if (injectCSSMap.has(filePath)) {
                     window.webContents.removeInsertedCSS(injectCSSMap.get(filePath)!);
@@ -135,3 +136,12 @@ Module.prototype.require = new Proxy(Module.prototype.require, {
         return Reflect.apply(target, thisArg, argumentsList);
     }
 });
+
+
+
+let config = {
+    name: "QQ",
+    font: "Microsoft Yahei",
+}
+
+config = await ConfigUI(config);
