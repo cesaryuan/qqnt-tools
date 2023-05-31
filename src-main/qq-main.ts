@@ -136,12 +136,3 @@ Module.prototype.require = new Proxy(Module.prototype.require, {
         return Reflect.apply(target, thisArg, argumentsList);
     }
 });
-
-
-
-let config = {
-    name: "QQ",
-    font: "Microsoft Yahei",
-}
-
-config = await ConfigUI(config);
