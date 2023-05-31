@@ -22,8 +22,6 @@ import { EventEmitter } from "stream";
 //     }
 // });
 
-
-
 class FileWatcher extends EventEmitter {
     constructor(filePath: string) {
         super();
@@ -42,10 +40,16 @@ class FileWatcher extends EventEmitter {
             }
         });
     }
+    callAndOnchange(callback: (path: string) => void) {
+        this.on('change', callback);
+        callback(this.filePath);
+    }
 }
 let qqPageJSWatcher = new FileWatcher(path.resolve(__dirname, "qq-page.js"));
+let qqPageCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/inject.css"));
 let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
     construct: function (target, argumentsList, newTarget) {
+        let injectCSSMap = new Map<string, string>();
         log("BrowserWindow construct", argumentsList);
         Object.assign(argumentsList[0].webPreferences, {
             devTools: true,
@@ -65,14 +69,21 @@ let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
             // log("frame-created", url);
             // window.webContents.openDevTools();
             // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
-            qqPageJSWatcher.on('change', async (filePath) => {
+            qqPageJSWatcher.callAndOnchange(async (filePath) => {
                 log('qq-page.js changed', filePath);
-                let r = await window.webContents.executeJavaScript(fs.readFileSync(filePath, "utf-8").trim().replace(/export \{\};/, ""));
-                log("executeJavaScript", r);
+                let result = await window.webContents.executeJavaScript(fs.readFileSync(filePath, "utf-8").trim().replace(/export \{\};/, ""));
+                log("executeJavaScript", result);
             });
-            // 第一次加载 qq-page.js，需要手动执行一次
-            qqPageJSWatcher.emit('change', qqPageJSWatcher.filePath);
-            window.webContents.insertCSS(fs.readFileSync(path.resolve(__dirname, "css/inject.css"), "utf-8").trim()); 
+            
+            qqPageCSSWatcher.callAndOnchange(async (filePath) => {
+                let css = fs.readFileSync(filePath, "utf-8").trim();
+                if (injectCSSMap.has(filePath)) {
+                    window.webContents.removeInsertedCSS(injectCSSMap.get(filePath)!);
+                    injectCSSMap.delete(filePath);
+                }
+                let key = await window.webContents.insertCSS(css);
+                injectCSSMap.set(filePath, key);
+            });
         });
         window.webContents.on("did-navigate-in-page", async (event, url, isMainFrame, frameProcessId, frameRoutingId) => {
             log("did-navigate-in-page", url);
