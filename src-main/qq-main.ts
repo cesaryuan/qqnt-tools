@@ -125,7 +125,8 @@ Module.prototype.require = new Proxy(Module.prototype.require, {
         if (argumentsList[0] == "electron") {
             return new Proxy(electron, {
                 get: function (target, propKey, receiver) {
-                    // note: 之所以不在前面直接修改 electron.BrowserWindow，是因为 electron.BrowserWindow 的 descriptor 的 configurable 为 false 且 set 为 undefined，所以无法修改
+                    // note: 之所以不在前面直接修改 electron.BrowserWindow，
+                    // 是因为 electron.BrowserWindow 的 descriptor 的 configurable 为 false 且 set 为 undefined，所以无法修改
                     if (propKey === "BrowserWindow") {
                         return proxyBrowserWindow;
                     }
