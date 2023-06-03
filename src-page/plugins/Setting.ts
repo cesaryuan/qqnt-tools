@@ -5,6 +5,7 @@ export default class Settings extends BasePlugin {
     name = "配置";
     description = "提供一些配置选项";
     version = "1.0.0";
+    match: string | RegExp = "dwadawdawdawd";
     navItemClone: Element | null = null;
     navBar: Element | null = null;
     async load() {

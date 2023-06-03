@@ -4,6 +4,7 @@ export default class ShowMsgTime extends BasePlugin {
     name = "ShowMsgTime";
     description = "在用户按下鼠标中键时显示消息发送时间";
     version = "1.0.0";
+    match = "#/main/message";
     observer: MutationObserver | null = null;
     mlList: HTMLElement | null = null;
     async load() {

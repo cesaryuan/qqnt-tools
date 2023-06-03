@@ -1,6 +1,5 @@
 import type { RendererNode } from "vue";
-import { VueComponent } from "../base";
-
+import { VueComponent, logTrace, __DEV__ } from "../base";
 
 export function hookVue3App() {
     // ==UserScript==
@@ -82,8 +81,14 @@ export function hookVue3App() {
     }
 
     function recordVue(el: Element, app: VueComponent) {
+        if (el instanceof Text) {
+            //如果是文本节点，获取父节点
+            // log("获取到文本节点，已获取父节点", el, app);
+            el = el.parentElement!;
+        }
         //将app记录到WeakMap中
         vueUnhooked.delete(app);
+        __DEV__ && proxyContext(app);
         let value = vueHooked.get(el);
         if (value) {
             if (value.findIndex((i) => i === app) == -1) {
@@ -95,6 +100,11 @@ export function hookVue3App() {
     }
 
     function recordDOM(el: Element, app: VueComponent) {
+        if (el instanceof Text) {
+            //如果是文本节点，获取父节点
+            // log("获取到文本节点，已获取父节点", el, app);
+            el = el.parentElement!;
+        }
         //将app挂载到DOMelement.__vue__
         if (el.__vue__) {
             el.__vue__.add(app);
@@ -104,4 +114,70 @@ export function hookVue3App() {
     }
 
     return vueHooked;
+}
+function isObject(value: any) {
+    return value && (typeof value === "object")
+}
+
+function isNode(value: any) {
+    return isObject(value) && value.nodeType > 0
+}
+// check if value is a proxy object
+function isProxy(value: any) {
+    return isObject(value) && !!value.__isProxy
+}
+
+let objColorMap = new WeakMap<any, string>();     
+function uniqueColor(obj: any) {
+    if (!objColorMap.has(obj)) {
+        objColorMap.set(obj, `#${Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, "0")}`);
+    }
+    return objColorMap.get(obj)!;
+}
+
+export function proxyContext(app: VueComponent){
+    if (app.ctx && !app.ctx.__qqntTools_isProxy) {
+        app.ctx.__qqntTools_isProxy = true
+        app.ctx = new Proxy(app.ctx, {
+            construct(target, args, newTarget) {
+                logTrace(["construct", args], [target], uniqueColor(target));
+                return Reflect.construct(target, args, newTarget);
+            },
+            get(target, key, receiver) {
+                let prop = Reflect.get(target, key, receiver);
+                if (typeof prop === "function") {
+                    return new Proxy(prop, {
+                        apply(func, thisArg, argArray) {
+                            window._qqntTools.__LOG_VUE_APP_CONTEXT_APPLY__ && logTrace(["apply", key, argArray], ["this:", thisArg, "func:", func, "element:", app.vnode.el], uniqueColor(target));
+                            return Reflect.apply(func, thisArg, argArray);
+                        }
+                    })
+                }
+                else {
+                    window._qqntTools.__LOG_VUE_APP_CONTEXT_GET__ && logTrace(["get", key, prop], [target], uniqueColor(target));
+                    return prop;
+                }
+            },
+            set(target, key, value, receiver) {
+                logTrace(["set", key, value], [target], uniqueColor(target));
+                return Reflect.set(target, key, value, receiver);
+            },
+            deleteProperty(target, key) {
+                logTrace(["deleteProperty", key], [target], uniqueColor(target));
+                return Reflect.deleteProperty(target, key);
+            },
+            has(target, key) {
+                logTrace(["has", key], [target], uniqueColor(target));
+                return Reflect.has(target, key);
+            },
+            ownKeys(target) {
+                logTrace(["ownKeys"], [target], uniqueColor(target));
+                return Reflect.ownKeys(target);
+            },
+            apply(target, thisArg, argArray) {
+                logTrace(["apply", target, argArray], [thisArg], uniqueColor(target));
+                return Reflect.apply(target, thisArg, argArray);
+            }
+        })
+    }
 }

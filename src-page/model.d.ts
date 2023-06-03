@@ -1,5 +1,6 @@
-import { VueComponent } from "./base";
-
+import { BasePlugin, VueComponent } from "./base";
+import type { IpcRenderer } from "electron";
+import type { PreloadTools } from "../src-common/model";
 declare global {
     namespace QQ {
         interface MessageProps {
@@ -145,6 +146,7 @@ declare global {
         name: string;
         description: string;
         version: string;
+        match: string | RegExp;
         load: () => void;
         unload: () => void;
     }
@@ -158,8 +160,19 @@ declare global {
     }
 
     interface Window {
-        PluginsEnabled: QQPlugin[];
-        _vueHooked: WeakMap<Element, VueComponent[]>;
         onQQPageLoaded?: () => void;
+        _preloadTools: PreloadTools
+        _qqntTools: {
+            __INIT__: boolean;
+            __LOG_VUE_APP_CONTEXT_GET__: boolean;
+            __LOG_VUE_APP_CONTEXT_APPLY__: boolean;
+            __PluginsEnabled: BasePlugin[];
+        }
+        _vueHooked: WeakMap<Element, VueComponent[]>;
+        _debugTools?: {
+            [key: string]: any;
+        };
     }
+
+
 }

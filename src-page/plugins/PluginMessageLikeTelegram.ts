@@ -4,6 +4,7 @@ class PluginMessageLikeTelegram extends BasePlugin {
     name = "MessageMergeLikeTelegram";
     description = "合并相同用户发送的消息";
     version = "1.0.0";
+    match = "#/main/message";
     observer: MutationObserver | null = null;
     async load() {
         let mlList = await waitForElement(".ml-list");
