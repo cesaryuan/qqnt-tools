@@ -161,6 +161,7 @@ declare global {
 
     interface Window {
         onQQPageLoaded?: () => void;
+        __DEV_MODE__: boolean; // assigned in qq-main.ts
         _preloadTools: PreloadTools
         _qqntTools: {
             __INIT__: boolean;

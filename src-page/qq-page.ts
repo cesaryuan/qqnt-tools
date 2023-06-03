@@ -5,16 +5,20 @@ import ShowMsgTime from "./plugins/ShowMsgTime";
 import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
 
 function main(){
-    log("Start");
+    log("Start init");
     window._vueHooked = window._vueHooked || hookVue3App();
     window._qqntTools = window._qqntTools || {
         __PluginsEnabled: [],
         __LOG_VUE_APP_CONTEXT_APPLY__: false,
-        __LOG_VUE_APP_CONTEXT_GET__: false,
+        __LOG_VUE_APP_CONTEXT_GET__: false
     }
     window._debugTools = {
         proxyContext,
     }
+    log("Inited");
+    log("DEV MODE:", window.__DEV_MODE__);
+    log("QQNT Tools:", window._qqntTools);
+    log("QQNT Tools Debug:", window._debugTools);
     window._qqntTools.__PluginsEnabled.push(new PluginMessageLikeTelegram());
     window._qqntTools.__PluginsEnabled.push(new ShowMsgTime());
     window._qqntTools.__PluginsEnabled.push(new BtnToShowUserRecord());
@@ -33,11 +37,17 @@ function main(){
         const url = location.href;
         window._qqntTools.__PluginsEnabled.forEach((plugin: BasePlugin) => {
             if (plugin.match instanceof RegExp && plugin.match.test(url)) {
-                log("load plugin", plugin.name);
-                plugin.load();
+                plugin.load().then(() => {
+                    log("plugin loaded", plugin.name);
+                }).catch((e) => {
+                    log("plugin load failed", plugin.name, e);
+                });
             } else if (typeof plugin.match == "string" && url.includes(plugin.match)) {
-                log("load plugin", plugin.name);
-                plugin.load();
+                plugin.load().then(() => {
+                    log("plugin loaded", plugin.name);
+                }).catch((e) => {
+                    log("plugin load failed", plugin.name, e);
+                });
             }
         })
 

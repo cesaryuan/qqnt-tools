@@ -22,6 +22,7 @@ function main() {
         return (hash >>> 0).toString(16);
     }
 
+    log("development mode:", __DEV__);
     class FileWatcher extends EventEmitter {
         constructor(filePath: string) {
             super();
@@ -92,6 +93,7 @@ function main() {
                 // let url = window.webContents.getURL();
                 // log("frame-created", url);
                 // window.webContents.openDevTools();
+                window.webContents.executeJavaScript(`window.__DEV_MODE__ = ${__DEV__};`);
                 // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
                 qqPageJSWatcher.callAndOnchange(async (filePath) => {
                     log('qq-page.js changed', filePath);
@@ -189,38 +191,41 @@ function HookPreload(){
         console.groupEnd();
     }
     const electron = require('electron');
-    let proxyContextBridge = new Proxy(electron.contextBridge, {
-        get: function (target, propKey, receiver) {
-            log("contextBridge get ", propKey);
-            let value = Reflect.get(target, propKey, receiver);
-            if (typeof value === "function") {
-                return new Proxy(value, {
-                    apply: function (target, thisArg, argumentsList) {
-                        log("contextBridge", propKey, argumentsList);
-                        return Reflect.apply(target, thisArg, argumentsList);
-                    },
-                });
+
+    if ('__DEV_MODE__' in window && (window as any).__DEV_MODE__) {
+        let proxyContextBridge = new Proxy(electron.contextBridge, {
+            get: function (target, propKey, receiver) {
+                log("contextBridge get ", propKey);
+                let value = Reflect.get(target, propKey, receiver);
+                if (typeof value === "function") {
+                    return new Proxy(value, {
+                        apply: function (target, thisArg, argumentsList) {
+                            log("contextBridge", propKey, argumentsList);
+                            return Reflect.apply(target, thisArg, argumentsList);
+                        },
+                    });
+                }
+                return value;
+            },
+        });
+        module.require = new Proxy(module.require, {
+            apply: function (target, thisArg, argumentsList) {
+                let value = Reflect.apply(target, thisArg, argumentsList);
+                ['vm', 'v8'].includes(argumentsList[0]) || log("Require", argumentsList[0], value);
+                if (argumentsList[0] == "electron") {
+                    return new Proxy(electron, {
+                        get: function (target, propKey, receiver) {
+                            if (propKey === "contextBridge") {
+                                return proxyContextBridge;
+                            } 
+                            return Reflect.get(target, propKey, receiver);
+                        }
+                    });
+                }
+                return Reflect.apply(target, thisArg, argumentsList);
             }
-            return value;
-        },
-    });
-    module.require = new Proxy(module.require, {
-        apply: function (target, thisArg, argumentsList) {
-            let value = Reflect.apply(target, thisArg, argumentsList);
-            ['vm', 'v8'].includes(argumentsList[0]) || log("Require", argumentsList[0], value);
-            if (argumentsList[0] == "electron") {
-                return new Proxy(electron, {
-                    get: function (target, propKey, receiver) {
-                        if (propKey === "contextBridge") {
-                            return proxyContextBridge;
-                        } 
-                        return Reflect.get(target, propKey, receiver);
-                    }
-                });
-            }
-            return Reflect.apply(target, thisArg, argumentsList);
-        }
-    });
+        });
+    }
     electron.contextBridge.exposeInMainWorld('_preloadTools', {
         // ipcRenderer: electron.ipcRenderer, // 不能直接暴露，原型修改被丢弃
         ipcRenderer: {

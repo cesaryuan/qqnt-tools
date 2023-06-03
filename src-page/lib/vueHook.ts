@@ -1,6 +1,7 @@
 import type { RendererNode } from "vue";
 import { VueComponent, logTrace, __DEV__ } from "../base";
 
+
 export function hookVue3App() {
     // ==UserScript==
     // @name         Hook Vue3 app

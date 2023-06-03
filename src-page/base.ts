@@ -1,13 +1,30 @@
 import type { ComponentInternalInstance } from "vue";
-let globalLogger = new Logger("QQNT-Tools");
-export const __DEV__ = import.meta.env.DEV ?? false;
+
+export const __DEV__ = window.__DEV_MODE__;
+
+class Logger {
+    static globalLogger = new Logger("QQNT-Tools");
+    constructor(private name: string) {}
+    log(...args: any[]) {
+        console.log(`[${this.name}]`, ...args);
+    }
+    info(...args: any[]) {
+        console.info(`[${this.name}]`, ...args);
+    }
+    warn(...args: any[]) {
+        console.warn(`[${this.name}]`, ...args);
+    }
+    error(...args: any[]) {
+        console.error(`[${this.name}]`, ...args);
+    }
+}
 
 export function log(...args: any[]) {
-    globalLogger.log("QQNT-Tools", ...args);
+    Logger.globalLogger.log(...args);
 }
 
 export function logTrace(args: any[], additional: any[], color: string) {
-    console.groupCollapsed(`%cQQNT-Tools %c${args[0]}`, "color: #ff00ff", `color: ${color}`, ...args.slice(1));
+    console.groupCollapsed(`%c[QQNT-Tools] %c${args[0]}`, "color: #ff00ff", `color: ${color}`, ...args.slice(1));
     // console.info();
     console.trace(...additional);
     console.groupEnd();
@@ -52,22 +69,6 @@ export async function waitForElement(selector: string, timeout = 5000) {
     });
 }
 
-class Logger {
-    constructor(private name: string) {}
-    log(...args: any[]) {
-        console.log(`[${this.name}]`, ...args);
-    }
-    info(...args: any[]) {
-        console.info(`[${this.name}]`, ...args);
-    }
-    warn(...args: any[]) {
-        console.warn(`[${this.name}]`, ...args);
-    }
-    error(...args: any[]) {
-        console.error(`[${this.name}]`, ...args);
-    }
-}
-
 export abstract class BasePlugin extends EventTarget implements QQPlugin {
     abstract readonly name: string;
     abstract readonly description: string;
@@ -75,7 +76,7 @@ export abstract class BasePlugin extends EventTarget implements QQPlugin {
     abstract readonly match: string | RegExp;
     readonly logger = new Logger(this.name);
     // static _vueHooked: WeakMap<Element, ComponentInternalInstance[]>;
-    abstract readonly load(): void;
+    abstract readonly load(): Promise<void>;
     unload(): void {
         this.dispatchEvent(new CustomEvent("unload"));
     }
