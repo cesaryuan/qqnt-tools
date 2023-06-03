@@ -4,6 +4,7 @@ import copy from 'rollup-plugin-copy'
 
 export default defineConfig({
   build: {
+    emptyOutDir: false,
     minify: false,
     rollupOptions: {
       input: './src-page/qq-page.ts',
