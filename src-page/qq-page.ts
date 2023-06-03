@@ -2,7 +2,7 @@ import { BasePlugin, log } from "./base";
 import { hookVue3App, proxyContext } from "./lib/vueHook";
 import PluginMessageLikeTelegram from "./plugins/PluginMessageLikeTelegram";
 import ShowMsgTime from "./plugins/ShowMsgTime";
-import {ShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
+import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
 
 function main(){
     log("Start");
@@ -17,7 +17,7 @@ function main(){
     }
     window._qqntTools.__PluginsEnabled.push(new PluginMessageLikeTelegram());
     window._qqntTools.__PluginsEnabled.push(new ShowMsgTime());
-    window._qqntTools.__PluginsEnabled.push(new ShowUserRecord());
+    window._qqntTools.__PluginsEnabled.push(new BtnToShowUserRecord());
     window._qqntTools.__PluginsEnabled.push(new RecordHandlers());
     window.onQQPageLoaded = window.onQQPageLoaded || function() {
         if (location.hash == "#/blank") {
