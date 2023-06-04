@@ -27,6 +27,7 @@ export function logTrace(args: any[], {additional, color}: {additional?: () => v
     console.groupCollapsed(`%c[QQNT-Tools] %c${args[0]}`, "color: #ff00ff", `color: ${color}`, ...args.slice(1));
     // console.info();
     additional && additional();
+    console.trace();
     console.groupEnd();
 }
 

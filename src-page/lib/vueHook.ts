@@ -23,7 +23,7 @@ export function hookVue3App() {
             let app: VueComponent | null = args[0]?._;
             if (app?.uid && app.uid >= 0) {
                 //判断app
-                let el = app.vnode.el;
+                let el = app?.vnode?.el;
                 if (el) {
                     recordVue(el as Element, app); //记录到WeakMap
                     recordDOM(el as Element, app); //挂载到DOM
@@ -127,11 +127,20 @@ function isNode(value: any) {
 function isProxy(value: any) {
     return isObject(value) && !!value.__isProxy
 }
-
-
-export function proxyContext(app: VueComponent){
+// 这些元素输出太多日志了
+const BlackClass = [
+    "recent-contact-item",
+]
+function proxyContext(app: VueComponent){
     if (app.ctx && !app.ctx.__qqntTools_isProxy) {
         app.ctx.__qqntTools_isProxy = true
+        if (app?.vnode?.el?.classList) {
+            for (const className of app.vnode.el.classList) {
+                if (BlackClass.includes(className)) {
+                    return
+                }
+            }
+        }
         app.ctx = new Proxy(app.ctx, {
             construct(target, args, newTarget) {
                 logTrace(["construct", args], {color: uniqueColor(target)});
@@ -142,10 +151,11 @@ export function proxyContext(app: VueComponent){
                 if (typeof prop === "function") {
                     return new Proxy(prop, {
                         apply(func, thisArg, argArray) {
-                            window._qqntTools.__LOG_VUE_APP_CONTEXT_APPLY__ && logTrace(["apply", key, argArray], {color: uniqueColor(target), additional: () => {
+                            logTrace(["apply", key, argArray], {color: uniqueColor(target), additional: () => {
                                 console.log("thisArg", thisArg);
                                 console.log("target", target);
                                 console.log("argArray", argArray);
+                                console.log("element", app?.vnode?.el);
                             }})
                             return Reflect.apply(func, thisArg, argArray);
                         }
