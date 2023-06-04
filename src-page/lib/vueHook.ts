@@ -1,5 +1,5 @@
 import type { RendererNode } from "vue";
-import { VueComponent, logTrace, __DEV__ } from "../base";
+import { VueComponent, logTrace, __DEV__, uniqueColor } from "../base";
 
 
 export function hookVue3App() {
@@ -128,20 +128,13 @@ function isProxy(value: any) {
     return isObject(value) && !!value.__isProxy
 }
 
-let objColorMap = new WeakMap<any, string>();     
-function uniqueColor(obj: any) {
-    if (!objColorMap.has(obj)) {
-        objColorMap.set(obj, `#${Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, "0")}`);
-    }
-    return objColorMap.get(obj)!;
-}
 
 export function proxyContext(app: VueComponent){
     if (app.ctx && !app.ctx.__qqntTools_isProxy) {
         app.ctx.__qqntTools_isProxy = true
         app.ctx = new Proxy(app.ctx, {
             construct(target, args, newTarget) {
-                logTrace(["construct", args], [target], uniqueColor(target));
+                logTrace(["construct", args], {color: uniqueColor(target)});
                 return Reflect.construct(target, args, newTarget);
             },
             get(target, key, receiver) {
@@ -149,34 +142,38 @@ export function proxyContext(app: VueComponent){
                 if (typeof prop === "function") {
                     return new Proxy(prop, {
                         apply(func, thisArg, argArray) {
-                            window._qqntTools.__LOG_VUE_APP_CONTEXT_APPLY__ && logTrace(["apply", key, argArray], ["this:", thisArg, "func:", func, "element:", app.vnode.el], uniqueColor(target));
+                            window._qqntTools.__LOG_VUE_APP_CONTEXT_APPLY__ && logTrace(["apply", key, argArray], {color: uniqueColor(target), additional: () => {
+                                console.log("thisArg", thisArg);
+                                console.log("target", target);
+                                console.log("argArray", argArray);
+                            }})
                             return Reflect.apply(func, thisArg, argArray);
                         }
                     })
                 }
                 else {
-                    window._qqntTools.__LOG_VUE_APP_CONTEXT_GET__ && logTrace(["get", key, prop], [target], uniqueColor(target));
+                    window._qqntTools.__LOG_VUE_APP_CONTEXT_GET__ && logTrace(["get", key, prop], {color: uniqueColor(target)})
                     return prop;
                 }
             },
             set(target, key, value, receiver) {
-                logTrace(["set", key, value], [target], uniqueColor(target));
+                logTrace(["set", key, value], {color: uniqueColor(target)})
                 return Reflect.set(target, key, value, receiver);
             },
             deleteProperty(target, key) {
-                logTrace(["deleteProperty", key], [target], uniqueColor(target));
+                logTrace(["deleteProperty", key], {color: uniqueColor(target)})
                 return Reflect.deleteProperty(target, key);
             },
             has(target, key) {
-                logTrace(["has", key], [target], uniqueColor(target));
+                logTrace(["has", key], {color: uniqueColor(target)})
                 return Reflect.has(target, key);
             },
             ownKeys(target) {
-                logTrace(["ownKeys"], [target], uniqueColor(target));
+                logTrace(["ownKeys"], {color: uniqueColor(target)})
                 return Reflect.ownKeys(target);
             },
             apply(target, thisArg, argArray) {
-                logTrace(["apply", target, argArray], [thisArg], uniqueColor(target));
+                logTrace(["apply", target, argArray], {color: uniqueColor(target)})
                 return Reflect.apply(target, thisArg, argArray);
             }
         })

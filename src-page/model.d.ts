@@ -171,7 +171,7 @@ declare global {
         }
         _vueHooked: WeakMap<Element, VueComponent[]>;
         _debugTools?: {
-            [key: string]: any;
+            proxyObject: (obj: any) => any;
         };
     }
 

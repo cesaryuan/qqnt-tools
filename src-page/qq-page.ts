@@ -1,5 +1,5 @@
 import { BasePlugin, log } from "./base";
-import { hookVue3App, proxyContext } from "./lib/vueHook";
+import { hookVue3App } from "./lib/vueHook";
 import PluginMessageLikeTelegram from "./plugins/PluginMessageLikeTelegram";
 import ShowMsgTime from "./plugins/ShowMsgTime";
 import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
@@ -13,8 +13,23 @@ function main(){
         __LOG_VUE_APP_CONTEXT_GET__: false
     }
     window._debugTools = {
-        proxyContext,
-    }
+        proxyObject: (obj: any) => {
+            return new Proxy(obj, {
+                get(target, key, receiver) {
+                    let value = Reflect.get(target, key, receiver);
+                    log("get", key, value);
+                    if (typeof value == "object") {
+                        value = window._debugTools!.proxyObject(value);
+                    }
+                    return value;
+                },
+                set(target, key, value, receiver) {
+                    log("set", key, value);
+                    return Reflect.set(target, key, value, receiver);
+                }
+            })
+        }
+    };
     log("Inited");
     log("DEV MODE:", window.__DEV_MODE__);
     log("QQNT Tools:", window._qqntTools);

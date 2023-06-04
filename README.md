@@ -20,6 +20,10 @@
 
 </details>
 
+<details><summary>在用户头像的右键菜单中添加选项，显示改用户的消息记录</summary>
+
+</details>
+
 ## 安装
 
 1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到QQNT安装目录下的文件夹`<QQNT>\qqnt-tools`

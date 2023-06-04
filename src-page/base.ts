@@ -23,10 +23,10 @@ export function log(...args: any[]) {
     Logger.globalLogger.log(...args);
 }
 
-export function logTrace(args: any[], additional: any[], color: string) {
+export function logTrace(args: any[], {additional, color}: {additional?: () => void, color?: string} = {}) {
     console.groupCollapsed(`%c[QQNT-Tools] %c${args[0]}`, "color: #ff00ff", `color: ${color}`, ...args.slice(1));
     // console.info();
-    console.trace(...additional);
+    additional && additional();
     console.groupEnd();
 }
 
@@ -97,4 +97,11 @@ export function sleep(time: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
     });
+}
+let objColorMap = new WeakMap<any, string>();     
+export function uniqueColor(obj: any) {
+    if (!objColorMap.has(obj)) {
+        objColorMap.set(obj, `#${Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, "0")}`);
+    }
+    return objColorMap.get(obj)!;
 }
