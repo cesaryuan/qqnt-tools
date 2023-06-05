@@ -1,8 +1,17 @@
-﻿# get running script's directory name (not path)
+﻿# Exit on error
+$ErrorActionPreference = "Stop"
+
+# get running script's directory name (not path)
 $ScriptDir = Split-Path $PSScriptRoot -Leaf
 write-host "ScriptDir: $ScriptDir"
+$distFullPath = resolve-path "dist"
+$targetDir = resolve-path "..\resources\app\app_launcher\qqnt-tools"
+if(test-path $targetDir){
+    # remove old link
+    Remove-Item $targetDir -Force -Recurse
+}
 # make link
-cmd /c mklink /D "..\resources\app\app_launcher\qqnt-tools" "..\..\..\$ScriptDir\dist"
+cmd /c mklink /J $targetDir $distFullPath
 
 Get-ChildItem "..\resources\app\app_launcher\index.js" -Include "*.js" -Recurse | ForEach-Object {
     # read with LF
