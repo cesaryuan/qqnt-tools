@@ -1,14 +1,18 @@
-﻿# get running script's directory name (not path)
+﻿$ErrorActionPreference = "Stop"
+
+# get running script's directory name (not path)
 $ScriptDir = Split-Path $PSScriptRoot -Leaf
 write-host "ScriptDir: $ScriptDir"
 $distFullPath = resolve-path "dist"
 $targetDir = resolve-path "..\resources\app\app_launcher\qqnt-tools"
 if(test-path $targetDir){
     # remove old link
+    Write-Host "0. 删除旧的链接"
     Remove-Item $targetDir -Force -Recurse
 }
 # make link
-cmd /c mklink /J $targetDir $distFullPath
+Write-Host "1. 创建软链接: $targetDir -> $distFullPath"
+cmd /c mklink /J $targetDir $distFullPath | Out-Null
 
 Get-ChildItem "..\resources\app\app_launcher\index.js" -Include "*.js" -Recurse | ForEach-Object {
     # read with LF
@@ -20,6 +24,7 @@ Get-ChildItem "..\resources\app\app_launcher\index.js" -Include "*.js" -Recurse 
     else{
         $content = "// Cesar`n$snippet`n// Cesar`n$content";
     }
+    Write-Host "2. 修改文件: $_"
     Set-Content $_.FullName $content
 }
 
