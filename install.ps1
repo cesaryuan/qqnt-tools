@@ -18,15 +18,16 @@ Get-ChildItem "..\resources\app\app_launcher\index.js" -Include "*.js" -Recurse 
     # read with LF
     $content = Get-Content $_.FullName -Raw
     $snippet = "require('./qqnt-tools/qq-main.js')"
-    if($content -match "(?s)// Cesar.*?// Cesar"){
-        $content = $content -replace "(?s)// Cesar.*?// Cesar", "// Cesar`n$snippet`n// Cesar";
+    
+    if($content -match "(?s)// 企鹅脑瘫 Tools.*?// 企鹅脑瘫 Tools"){
+        $content = $content -replace "(?s)// 企鹅脑瘫 Tools.*?// 企鹅脑瘫 Tools", "// 企鹅脑瘫 Tools`n$snippet`n// 企鹅脑瘫 Tools";
     }
     else{
-        $content = "// Cesar`n$snippet`n// Cesar`n$content";
+        $content = "// 企鹅脑瘫 Tools`n$snippet`n// 企鹅脑瘫 Tools`n$content";
     }
     Write-Host "2. 修改文件: $_"
     Set-Content $_.FullName $content
 }
 
 # Wait for user close the window
-Write-Host "安装完成，请重启QQ！"
+Write-Host "安装完成，请重启企鹅脑瘫！"
