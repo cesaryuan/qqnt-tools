@@ -6,15 +6,6 @@ export class BtnToShowUserRecord extends BasePlugin {
     version = "1.0.0";
     match = "#/main/message";
     originhandleMsgUserContextMenu?: ({e, msgRecord}: {e: MouseEvent, msgRecord: any}, event: PointerEvent) => any;
-    async clickHandler(e: MouseEvent) {
-        return
-        // if (e.target!.classList.contains("avatar")) {
-        //     let openRecord = await waitForElement("#id-func-bar-MessageRecord") as HTMLElement;
-        //     openRecord.click();
-        //     await sleep(1000);
-        //     sendToRenderer("#/record", "search-record", {uid: 123, text: "hello"});
-        // }
-    }
     async load() {
         let mlList = await waitForElement(".ml-list");
         let groupChatEle = await waitForElement("#app > div.container > div.tab-container > div > div.aio > div.group-panel.need-token-updated > div.group-chat");
@@ -36,18 +27,12 @@ export class BtnToShowUserRecord extends BasePlugin {
             }, 0);
             return result;
         }
-        this.clickHandler = this.clickHandler.bind(this);
-        document.addEventListener("contextmenu", this.clickHandler);
         this.addEventListener("unload", () => {
-            log("unload ShowUserRecord");
-            document.removeEventListener("contextmenu", this.clickHandler);
+            log("unload", BtnToShowUserRecord.name);
             groupChat.handleMsgUserContextMenu = this.originhandleMsgUserContextMenu;
         })
         
     }
-    // unload() {
-    //     document.removeEventListener("contextmenu", this.clickHandler);
-    // }
     showUserRecord(uid: number) {
 
     }
