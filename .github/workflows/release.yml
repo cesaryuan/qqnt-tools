@@ -28,7 +28,7 @@ jobs:
           append_body: |
             
             1. 下载`qqnt-tools.zip`，解压到`企鹅脑瘫`安装目录下的文件夹`<企鹅脑瘫>\qqnt-tools`
-            2. 双击运行`install.bat`
+            2. 右键`install.bat`以管理员身份运行
             3. 重启`企鹅脑瘫`
           draft: false
           prerelease: false

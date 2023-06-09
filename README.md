@@ -39,18 +39,8 @@
 ## 安装
 
 1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到`企鹅脑瘫`安装目录下的文件夹`<企鹅脑瘫>\qqnt-tools`
-2. 双击运行`install.bat`
+2. 右键`install.bat`以管理员身份运行
 3. 重启`企鹅脑瘫`
-
-或者在`企鹅脑瘫`安装目录下启动Powershell
-
-```powershell
-git clone https://github.com/cesaryuan/qqnt-tools
-cd qqnt-tools
-npm install
-npm run build
-. install.ps1
-```
 
 ## 贡献
 

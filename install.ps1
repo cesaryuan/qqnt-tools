@@ -1,4 +1,11 @@
 ﻿$ErrorActionPreference = "Stop"
+# 检查是否以管理员权限运行
+$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+if(-not $IsAdmin){
+    Write-Host "请以管理员权限运行此脚本！"
+    exit
+}
+
 
 # get running script's directory name (not path)
 $ScriptDir = Split-Path $PSScriptRoot -Leaf
