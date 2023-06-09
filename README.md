@@ -1,6 +1,10 @@
-# QQNT Tools
+# 企鹅脑瘫 Tools
 
-为QQNT添加一些实用的功能，目前包括：
+> - 本工具对`企鹅脑瘫`所做的修改均为本地修改，不会窃取、存储、上传任何您的任何信息，如果对此表示怀疑，可查看源码并自行构建
+> - 使用本工具所造成的任何后果，本人概不负责
+> - 请不要传播本工具，本工具为个人出于学习交流目的而开发，不得用于任何商业用途
+
+为`企鹅脑瘫`添加一些实用的功能，目前包括：
 
 <details><summary>在聊天窗口中合并相同用户的连续消息</summary>
 
@@ -20,26 +24,53 @@
 
 </details>
 
-<details><summary>在用户头像的右键菜单中添加选项，显示改用户的消息记录</summary>
+<details><summary>在用户头像的右键菜单中添加选项，显示该用户的消息记录</summary>
+
+</details>
+
+</details>
+
+<details><summary>通过CSS自定义你的企鹅脑瘫外观</summary>
+
+修改`<企鹅脑瘫>\qqnt-tools\dist\css\custom.css`，变动会实时生效，无需重启软件
 
 </details>
 
 ## 安装
 
-1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到QQNT安装目录下的文件夹`<QQNT>\qqnt-tools`
-2. 双击运行`install.bat`
-3. 重启QQNT
+1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到`企鹅脑瘫`安装目录下的文件夹`<企鹅脑瘫>\qqnt-tools`
+2. 右键`install.bat`以管理员身份运行
+3. 重启`企鹅脑瘫`
 
-或者在QQNT安装目录下启动Powershell
+## 卸载
 
-```powershell
-git clone https://github.com/cesaryuan/qqnt-tools
-cd qqnt-tools
-npm install
-npm run build
-. install.ps1
-```
+运行`<企鹅脑瘫>\qqnt-tools\uninstall.bat`，重启`企鹅脑瘫`
+
+## 更新
+
+下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)，覆盖解压到`<企鹅脑瘫>\qqnt-tools`，重启`企鹅脑瘫`
 
 ## 贡献
 
+本项目主要包括两个部分：
+
+- `src-page`：在`electron renderer process`中运行的脚本
+- `src-main`: 在`electron main process`中运行的脚本，用于注入`src-page`中的脚本
+
+如果你想要添加新的功能，一般来说，需要以下两步：
+
+- `npm install`安装依赖
+- 参考`src-page/plugins`中的插件，编写新的插件
+- 修改`src-page/qq-page.ts`，将新的插件`push`到`__PluginsEnabled`中
 - 运行`npm run build`编译项目
+- 重启软件
+
+## 致谢
+
+感谢 @steven026 大佬的 [Hook Vue3 app v1.0.3 [Vue3 app劫持 油猴库]-油猴中文网](https://bbs.tampermonkey.net.cn/thread-2886-1-1.html)
+
+## 免责声明
+
+本项目仅供学习交流使用，严禁用于商业用途，如产生法律纠纷与本人无关。
+
+请不要将本项目用于任何违反法律和企业规定的行为，否则后果自负。

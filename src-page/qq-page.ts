@@ -5,6 +5,9 @@ import ShowMsgTime from "./plugins/ShowMsgTime";
 import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
 
 function main(){
+    if (window._qqntTools && !window.__DEV_MODE__){
+        return;
+    }
     log("Start init");
     window._vueHooked = window._vueHooked || hookVue3App();
     window._qqntTools = window._qqntTools || {

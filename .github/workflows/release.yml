@@ -18,13 +18,19 @@ jobs:
 
       - name: Compress
         shell: pwsh
-        run: Compress-Archive dist, docs, README.md, .\install.* -Force -DestinationPath qqnt-tools.zip
+        run: Compress-Archive dist, docs, README.md, .\install.*，.\uninstall.* -Force -DestinationPath qqnt-tools.zip
 
       - name: release dist/
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: qqnt-tools.zip
+          append_body: true
+          body: |
+            ## 安装
+            1. 下载`qqnt-tools.zip`，解压到`企鹅脑瘫`安装目录下的文件夹`<企鹅脑瘫>\qqnt-tools`
+            2. 右键`install.bat`以管理员身份运行
+            3. 重启`企鹅脑瘫`
           draft: false
           prerelease: false
         env:
