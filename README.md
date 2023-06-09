@@ -42,6 +42,14 @@
 2. 右键`install.bat`以管理员身份运行
 3. 重启`企鹅脑瘫`
 
+## 卸载
+
+运行`<企鹅脑瘫>\qqnt-tools\uninstall.bat`，重启`企鹅脑瘫`
+
+## 更新
+
+下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)，覆盖解压到`<企鹅脑瘫>\qqnt-tools`，重启`企鹅脑瘫`
+
 ## 贡献
 
 本项目主要包括两个部分：
