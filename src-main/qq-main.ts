@@ -54,6 +54,10 @@ function main() {
     }
     let qqPageJSWatcher = new FileWatcher(path.resolve(__dirname, "qq-page.js"));
     let qqPageCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/inject.css"));
+    let qqCustomCSSWatcher: FileWatcher | null = null;
+    if (fs.existsSync(path.resolve(__dirname, "css/custom.css"))) {
+        qqCustomCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/custom.css"));
+    }
     const myPreloadJS = HookPreload.toString() + "\n" + HookPreload.name + "();";
     electron.ipcMain.on("send-to-renderer", (event, arg) => {
         for (let window of electron.BrowserWindow.getAllWindows()) {
@@ -103,6 +107,17 @@ function main() {
                 
                 qqPageCSSWatcher.callAndOnchange(async (filePath) => {
                     log('inject.css changed', filePath);
+                    let css = fs.readFileSync(filePath, "utf-8").trim();
+                    if (injectCSSMap.has(filePath)) {
+                        window.webContents.removeInsertedCSS(injectCSSMap.get(filePath)!);
+                        injectCSSMap.delete(filePath);
+                    }
+                    let key = await window.webContents.insertCSS(css);
+                    injectCSSMap.set(filePath, key);
+                }, { emitter: window.webContents, event: "destroyed" });
+
+                qqCustomCSSWatcher?.callAndOnchange(async (filePath) => {
+                    log('custom.css changed', filePath);
                     let css = fs.readFileSync(filePath, "utf-8").trim();
                     if (injectCSSMap.has(filePath)) {
                         window.webContents.removeInsertedCSS(injectCSSMap.get(filePath)!);

@@ -24,6 +24,14 @@
 
 </details>
 
+</details>
+
+<details><summary>通过CSS自定义你的企鹅脑瘫外观</summary>
+
+修改`<企鹅脑瘫>\qqnt-tools\dist\css\custom.css`，变动会实时生效，无需重启软件
+
+</details>
+
 ## 安装
 
 1. 下载[最新版本](https://github.com/cesaryuan/qqnt-tools/releases)解压到`企鹅脑瘫`安装目录下的文件夹`<企鹅脑瘫>\qqnt-tools`
