@@ -4,7 +4,7 @@
 $ScriptDir = Split-Path $PSScriptRoot -Leaf
 write-host "ScriptDir: $ScriptDir"
 $distFullPath = resolve-path "dist"
-$targetDir = resolve-path "..\resources\app\app_launcher\qqnt-tools"
+$targetDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("..\resources\app\app_launcher\qqnt-tools")
 if(test-path $targetDir){
     # remove old link
     Write-Host "0. 删除旧的链接"
