@@ -54,10 +54,10 @@ function main() {
     }
     let qqPageJSWatcher = new FileWatcher(path.resolve(__dirname, "qq-page.js"));
     let qqPageCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/inject.css"));
-    let qqCustomCSSWatcher: FileWatcher | null = null;
-    if (fs.existsSync(path.resolve(__dirname, "css/custom.css"))) {
-        qqCustomCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/custom.css"));
+    if (!fs.existsSync(path.resolve(__dirname, "css/custom.css"))) {
+        fs.writeFileSync(path.resolve(__dirname, "css/custom.css"), "");
     }
+    let qqCustomCSSWatcher = new FileWatcher(path.resolve(__dirname, "css/custom.css"));
     const myPreloadJS = HookPreload.toString() + "\n" + HookPreload.name + "();";
     electron.ipcMain.on("send-to-renderer", (event, arg) => {
         for (let window of electron.BrowserWindow.getAllWindows()) {
