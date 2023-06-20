@@ -10,7 +10,12 @@ export class BtnToShowUserRecord extends BasePlugin {
         let mlList = await waitForElement(".ml-list");
         let groupChatEle = await waitForElement("#app > div.container > div.tab-container > div > div.aio > div.group-panel.need-token-updated > div.group-chat");
         let groupChat = window._vueHooked.get(groupChatEle)![0].ctx;
-        this.originhandleMsgUserContextMenu = groupChat.handleMsgUserContextMenu;
+        if(!this.originhandleMsgUserContextMenu && !groupChat.handleMsgUserContextMenu.isModified) {
+            this.originhandleMsgUserContextMenu = groupChat.handleMsgUserContextMenu;
+        } else {
+            log("handleMsgUserContextMenu is already modified");
+            return;
+        }
         groupChat.handleMsgUserContextMenu = ({e, msgRecord}: {e: PointerEvent, msgRecord: QQ.MsgRecord}, event: PointerEvent) => {
             log("handleMsgUserContextMenu", msgRecord, "senderUid", msgRecord.senderUid);
             let result = this.originhandleMsgUserContextMenu?.apply(groupChat, [{e, msgRecord}, event])
@@ -27,6 +32,7 @@ export class BtnToShowUserRecord extends BasePlugin {
             }, 0);
             return result;
         }
+        groupChat.handleMsgUserContextMenu.isModified = true;
         this.addEventListener("unload", () => {
             log("unload", BtnToShowUserRecord.name);
             groupChat.handleMsgUserContextMenu = this.originhandleMsgUserContextMenu;
