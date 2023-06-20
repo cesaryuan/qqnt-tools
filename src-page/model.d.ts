@@ -167,6 +167,7 @@ declare global {
             __INIT__: boolean;
             __LOG_VUE_APP_CONTEXT_GET__: boolean;
             __LOG_VUE_APP_CONTEXT_APPLY__: boolean;
+            __LOG_VUE_APP_CONTEXT_WHITELIST__: string[];
             __PluginsEnabled: BasePlugin[];
         }
         _vueHooked: WeakMap<Element, VueComponent[]>;

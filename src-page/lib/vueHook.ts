@@ -1,5 +1,5 @@
 import type { RendererNode } from "vue";
-import { VueComponent, logTrace, __DEV__, uniqueColor } from "../base";
+import { VueComponent, logTrace, log, __DEV__, uniqueColor } from "../base";
 
 
 export function hookVue3App() {
@@ -151,12 +151,15 @@ function proxyContext(app: VueComponent){
                 if (typeof prop === "function") {
                     return new Proxy(prop, {
                         apply(func, thisArg, argArray) {
-                            logTrace(["apply", key, argArray], {color: uniqueColor(target), additional: () => {
-                                console.log("thisArg", thisArg);
-                                console.log("target", target);
-                                console.log("argArray", argArray);
-                                console.log("element", app?.vnode?.el);
-                            }})
+                            log("apply", key, argArray)
+                            if (window._qqntTools.__LOG_VUE_APP_CONTEXT_WHITELIST__?.includes(key as string)) {
+                                logTrace(["apply", key, argArray], {color: uniqueColor(target), additional: () => {
+                                    console.log("thisArg", thisArg);
+                                    console.log("target", target);
+                                    console.log("argArray", argArray);
+                                    console.log("element", app?.vnode?.el);
+                                }})
+                            }
                             return Reflect.apply(func, thisArg, argArray);
                         }
                     })

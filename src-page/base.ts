@@ -89,9 +89,13 @@ export function htmlStringToElement(html: string) {
     return template.content.firstChild as HTMLElement;
 }
 
-export interface VueComponent extends ComponentInternalInstance {
-    bum: (() => void)[];
-    ctx: any;
+export type VueComponent = ComponentInternalInstance;
+
+declare module "vue" {
+    interface ComponentInternalInstance {
+        bum: (() => void)[];
+        ctx: any;
+    }
 }
 
 export function sleep(time: number) {
@@ -105,4 +109,46 @@ export function uniqueColor(obj: any) {
         objColorMap.set(obj, `#${Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, "0")}`);
     }
     return objColorMap.get(obj)!;
+}
+
+// todo: 重构
+function toast(message: string, timeout = 2000) {
+    const el = htmlStringToElement(`<div class="toast">${message}</div>`);
+    document.body.appendChild(el);
+    setTimeout(() => {
+        el.remove();
+    }, timeout);
+}
+
+// todo: 重构
+function showDialog({message}: {message: string}) {
+    const el = htmlStringToElement(`
+    <div class="q-dialog" style="position: fixed; z-index: 5000">
+    <div class="q-dialog-modal" style="position: inherit; background: var(--overlay_mask_dark)"></div>
+    <div class="update-dialog q-dialog-main" style="margin: auto">
+        <div class="q-dialog-header">
+            <!---->
+            <i class="q-icon q-dialog-close" name="Close" style="--2cebd391: var(--icon-primary); --fe3d1da8: 20px">
+                <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M8.69478 8L12 11.3058L11.3045 12L8 8.69491L4.69552 12L4.00001 11.3058L7.30522 8L4 4.69418L4.69551 4L8 7.3051L11.3045 4L12 4.69418L8.69478 8Z">
+                    </path>
+                </svg>
+            </i>
+        </div>
+        <div class="q-dialog-body">
+            <div class="q-dialog-text-area">
+                <!---->
+                <div class="q-dialog-content">
+
+                </div>
+            </div>
+        </div>
+        <div class="q-dialog-footer">
+
+        </div>
+    </div>
+    </div>
+    `);
+    document.body.appendChild(el);
 }

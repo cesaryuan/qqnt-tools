@@ -158,6 +158,21 @@ function main() {
             return value;
         },
     });
+    let proxyApp = new Proxy(electron.app, {
+        get: function (app, propKey, receiver) {
+            log("app get ", propKey);
+            let value = Reflect.get(app, propKey, receiver);
+            if (typeof value === "function") {
+                return new Proxy(value, {
+                    apply: function (target, thisArg, argumentsList) {
+                        log("app apply", propKey, argumentsList);
+                        return Reflect.apply(target, app, argumentsList);
+                    },
+                });
+            }
+            return value;
+        },
+    });
     let proxyProtocol = new Proxy(electron.protocol, {
         get: function (target, propKey, receiver) {
             log("protocol get ", propKey);
@@ -173,6 +188,7 @@ function main() {
             return value;
         },
     });
+
     Module.prototype.require = new Proxy(Module.prototype.require, {
         apply: function (target, thisArg, argumentsList) {
             log("Require ", argumentsList[0]);
@@ -189,7 +205,10 @@ function main() {
                         } 
                         else if (propKey === "protocol" && __DEV__) {
                             return proxyProtocol;
-                        }
+                        } 
+                        // else if (propKey === "app" && __DEV__) {
+                        //     return proxyApp;
+                        // }
                         return Reflect.get(target, propKey, receiver);
                     }
                 });

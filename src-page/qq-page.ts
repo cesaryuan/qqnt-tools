@@ -3,6 +3,7 @@ import { hookVue3App } from "./lib/vueHook";
 import PluginMessageLikeTelegram from "./plugins/PluginMessageLikeTelegram";
 import ShowMsgTime from "./plugins/ShowMsgTime";
 import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
+import "./lib/ObjectInspector"
 
 function main(){
     if (window._qqntTools && !window.__DEV_MODE__){
@@ -13,7 +14,8 @@ function main(){
     window._qqntTools = window._qqntTools || {
         __PluginsEnabled: [],
         __LOG_VUE_APP_CONTEXT_APPLY__: false,
-        __LOG_VUE_APP_CONTEXT_GET__: false
+        __LOG_VUE_APP_CONTEXT_GET__: false,
+        __LOG_VUE_APP_CONTEXT_WHITELIST__: [],
     }
     window._debugTools = {
         proxyObject: (obj: any) => {
