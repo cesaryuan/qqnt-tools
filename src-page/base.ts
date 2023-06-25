@@ -121,14 +121,14 @@ function toast(message: string, timeout = 2000) {
 }
 
 // todo: 重构
-function showDialog({message}: {message: string}) {
+export function showDialog({message}: {message: string}) {
     const el = htmlStringToElement(`
     <div class="q-dialog" style="position: fixed; z-index: 5000">
     <div class="q-dialog-modal" style="position: inherit; background: var(--overlay_mask_dark)"></div>
     <div class="update-dialog q-dialog-main" style="margin: auto">
         <div class="q-dialog-header">
             <!---->
-            <i class="q-icon q-dialog-close" name="Close" style="--2cebd391: var(--icon-primary); --fe3d1da8: 20px">
+            <i class="q-icon q-dialog-close" name="Close" style="width: 24px;">
                 <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M8.69478 8L12 11.3058L11.3045 12L8 8.69491L4.69552 12L4.00001 11.3058L7.30522 8L4 4.69418L4.69551 4L8 7.3051L11.3045 4L12 4.69418L8.69478 8Z">
@@ -150,5 +150,9 @@ function showDialog({message}: {message: string}) {
     </div>
     </div>
     `);
+    el.querySelector(".q-dialog-content")!.textContent = message;
+    el.querySelector(".q-dialog-close")!.addEventListener("click", () => {
+        el.remove();
+    });
     document.body.appendChild(el);
 }
