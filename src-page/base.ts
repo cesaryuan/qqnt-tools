@@ -86,7 +86,7 @@ export abstract class BasePlugin extends EventTarget implements QQPlugin {
 export function htmlStringToElement(html: string) {
     let template = document.createElement("template");
     template.innerHTML = html;
-    return template.content.firstChild as HTMLElement;
+    return template.content.firstElementChild as HTMLElement;
 }
 
 export type VueComponent = ComponentInternalInstance;
