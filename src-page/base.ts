@@ -40,7 +40,17 @@ export function sendToRenderer(targetUrl: string, event: string, data: any) {
     });
 }
 
-export async function waitForElement(selector: string, timeout = 5000) {
+export async function waitForElement(selector: string, {
+    timeout = 5000,
+    childList = true, 
+    subtree = true,
+    observeTarget
+}: {
+    timeout: number,
+    childList: boolean,
+    subtree: boolean,
+    observeTarget: Node,
+} = {}) {
     return new Promise<Element>((resolve, reject) => {
         const el = document.querySelector(selector);
         let callback = resolve;
@@ -65,7 +75,7 @@ export async function waitForElement(selector: string, timeout = 5000) {
                     }
                 }
             });
-            observer.observe(document.documentElement, { childList: true, subtree: true });
+            observer.observe(observeTarget || document.documentElement, { childList, subtree });
         }
     });
 }

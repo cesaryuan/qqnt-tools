@@ -1,4 +1,4 @@
-import { BasePlugin, htmlStringToElement, log, sendToRenderer, sleep, waitForElement } from "../base"
+import { BasePlugin, htmlStringToElement, log, addMenuItemToNextMenu, sleep, waitForElement, sendToRenderer } from "../base"
 
 export class BtnToShowUserRecord extends BasePlugin {
     name = "BtnToShowUserRecord";
@@ -20,10 +20,7 @@ export class BtnToShowUserRecord extends BasePlugin {
             log("handleMsgUserContextMenu", msgRecord, "senderUid", msgRecord.senderUid);
             let result = this.originhandleMsgUserContextMenu?.apply(groupChat, [{e, msgRecord}, event])
             setTimeout(async () => {
-                let menu = await waitForElement("#qContextMenu");
-                let menuItem = htmlStringToElement(`<a class="q-context-menu-item q-context-menu-item--normal" aria-disabled="false" role="menuitem" tabindex="-1" title=""><span class="q-context-menu-item__text">查看聊天记录</span></a>`)
-                menu.appendChild(menuItem);
-                menuItem.addEventListener("click", async () => {
+                addMenuItemToNextMenu("查看聊天记录", async () => {
                     let openRecord = await waitForElement("#id-func-bar-MessageRecord") as HTMLElement;
                     openRecord.click();
                     await sleep(1000);
