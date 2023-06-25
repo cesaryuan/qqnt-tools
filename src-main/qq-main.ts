@@ -41,7 +41,7 @@ function decryptApplication(){
     fs.renameSync(tempDecryptDir, decryptDir);
 }
 function main() {
-    // decryptApplication();
+    // common part
     const __DEV__ = process.env.NODE_ENV === "development";
     const prefix = "[HOOK]";
     Object.assign(util.inspect.defaultOptions, {
@@ -65,8 +65,22 @@ function main() {
         // return hexString
         return (hash >>> 0).toString(16);
     }
-
     log("development mode:", __DEV__);
+    electron.ipcMain.on("send-to-renderer", (event, arg) => {
+        for (let window of electron.BrowserWindow.getAllWindows()) {
+            let url = window.webContents.getURL();
+            if (url.includes(arg.targetUrl)) {
+                log("send-to-renderer", arg.event, arg.data);
+                window.webContents.send(arg.event, arg.data);
+            }
+        }
+    });
+    electron.ipcMain.on("cesar-log", (event, ...args) => {
+        log(...args);
+    });
+    
+    // qq part
+    // decryptApplication();
     class FileWatcher extends EventEmitter {
         constructor(filePath: string) {
             super();
@@ -104,22 +118,15 @@ function main() {
     }
     let qqCustomCSSWatcher = new FileWatcher(customCSSPath);
     const myPreloadJS = HookPreload.toString() + "\n" + HookPreload.name + `(${__DEV__});`;
-    electron.ipcMain.on("send-to-renderer", (event, arg) => {
-        for (let window of electron.BrowserWindow.getAllWindows()) {
-            let url = window.webContents.getURL();
-            if (url.includes(arg.targetUrl)) {
-                log("send-to-renderer", arg.event, arg.data);
-                window.webContents.send(arg.event, arg.data);
-            }
-        }
-    });
-    electron.ipcMain.on("cesar-log", (event, ...args) => {
-        log(...args);
-    });
+
     let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
         construct: function (target, argumentsList, newTarget) {
-            let injectCSSMap = new Map<string, string>();
+            // common part
             log("BrowserWindow construct", argumentsList);
+            argumentsList[0].webPreferences.devTools = true;
+
+            // qq part
+            let injectCSSMap = new Map<string, string>();
             let preload = argumentsList[0].webPreferences.preload;
             if (preload && !preload.includes("qqnt-tools")) { // 判断preload是否已经被hook过
                 let oldPreloadJS = fs.readFileSync(preload, "utf-8");
@@ -128,9 +135,10 @@ function main() {
                 fs.writeFileSync(preload, newPreloadJS);
             }
             Object.assign(argumentsList[0].webPreferences, {
-                devTools: true,
                 preload,
             });
+
+            // common part
             let window: electron.BrowserWindow = Reflect.construct(target, argumentsList, newTarget);
             window.webContents.on("before-input-event", (event, input) => {
                 // Windows/Linux hotkeys
@@ -150,6 +158,10 @@ function main() {
                 // log("frame-created", url);
                 // window.webContents.openDevTools();
                 window.webContents.executeJavaScript(`window.__DEV_MODE__ = ${__DEV__};`);
+            });
+
+            // qq part
+            window.webContents.on("frame-created", async (event, {frame}) => {
                 // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
                 qqPageJSWatcher.callAndOnchange(async (filePath) => {
                     log('qq-page.js changed', filePath);
@@ -194,6 +206,8 @@ function main() {
             return window;
         }
     });
+
+    // common part
     const getHandler: (name: string) => ProxyHandler<any> = (module) => ({
         get: function (target, propKey, receiver) {
             let value = Reflect.get(target, propKey, receiver);
@@ -230,7 +244,7 @@ function main() {
         apply: function (requireTarget, thisArg: Module, argumentsList) {
             let [id] = argumentsList; 
             log("Require", id);
-            if (argumentsList[0] == "electron") {
+            if (id === "electron") {
                 return new Proxy(electron, {
                     get: function (target, propKey, receiver) {
                         // note: 之所以不在前面直接修改 electron.BrowserWindow，
@@ -288,9 +302,8 @@ function HookPreload(__DEV__: boolean = false) {
         } catch(e) {
             electron.ipcRenderer.send("cesar-log", "[Render Preload] Error", ...args);
         }
-        console.log("QQNT-Tools", ...args);
+        console.log("[Preload]", ...args);
     }
-    log("Preload");
     try {
         function arrayToRepr(arr: any[]) {
             return arr.map(item => {
