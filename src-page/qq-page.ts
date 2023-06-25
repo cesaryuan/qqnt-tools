@@ -3,7 +3,7 @@ import { hookVue3App } from "./lib/vueHook";
 import PluginMessageLikeTelegram from "./plugins/PluginMessageLikeTelegram";
 import ShowMsgTime from "./plugins/ShowMsgTime";
 import {BtnToShowUserRecord, RecordHandlers} from "./plugins/ShowUserRecord";
-import "./lib/ObjectInspector"
+import Settings from "./plugins/Setting";
 
 function main(){
     if (window._qqntTools && !window.__DEV_MODE__){
@@ -44,6 +44,7 @@ function main(){
     window._qqntTools.__PluginsEnabled.push(new ShowMsgTime());
     window._qqntTools.__PluginsEnabled.push(new BtnToShowUserRecord());
     window._qqntTools.__PluginsEnabled.push(new RecordHandlers());
+    window._qqntTools.__PluginsEnabled.push(new Settings());
     window.onQQPageLoaded = window.onQQPageLoaded || function() {
         if (location.hash == "#/blank") {
             return;
