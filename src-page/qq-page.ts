@@ -10,6 +10,7 @@ function main(){
         return;
     }
     log("Start init");
+    import("./lib/ObjectInspector")
     window._vueHooked = window._vueHooked || hookVue3App();
     window._qqntTools = window._qqntTools || {
         __PluginsEnabled: [],
