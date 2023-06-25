@@ -5,6 +5,8 @@ import Module from "module";
 import { EventEmitter } from "stream";
 import type { PreloadTools } from "../src-common/model";
 import asar from "asar";
+import util from 'util'
+
 function extractAsar(asarFile: string, destDir: string) {
     asar.extractAll(asarFile, destDir);
 }
@@ -41,7 +43,14 @@ function decryptApplication(){
 function main() {
     // decryptApplication();
     const __DEV__ = process.env.NODE_ENV === "development";
-    const prefix = "[HOOK] ";
+    const prefix = "[HOOK]";
+    Object.assign(util.inspect.defaultOptions, {
+        showHidden: false,
+        depth: 0,
+        colors: true,
+        compact: 3,
+        maxStringLength: 80,
+    });
     function log(...args: any[]) {
         var args: any[] = Array.prototype.slice.call(arguments);
         args.unshift(prefix);
