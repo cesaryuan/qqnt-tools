@@ -156,3 +156,18 @@ export function showDialog({message}: {message: string}) {
     });
     document.body.appendChild(el);
 }
+
+export async function addMenuItemToNextMenu(text: string, callback: (menu: Element) => void) {
+    const menu = await waitForElement("#qContextMenu", {
+        subtree: false,
+        observeTarget: document.body,
+    });
+    const top = Number.parseFloat(menu.style.top.slice(0, -2));
+    menu.style.top = `${top - 28}px`;
+    let menuItem = htmlStringToElement(`<a class="q-context-menu-item q-context-menu-item--normal" aria-disabled="false" role="menuitem" tabindex="-1" title=""><span class="q-context-menu-item__text">查看聊天记录</span></a>`)
+    menuItem.querySelector(".q-context-menu-item__text")!.textContent = text;
+    menu.appendChild(menuItem);
+    menuItem.addEventListener("click", () => {
+        callback(menu);
+    });
+}
