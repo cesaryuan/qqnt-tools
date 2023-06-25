@@ -4,7 +4,42 @@ import path from "path";
 import Module from "module";
 import { EventEmitter } from "stream";
 import type { PreloadTools } from "../src-common/model";
+import asar from "asar";
+function extractAsar(asarFile: string, destDir: string) {
+    asar.extractAll(asarFile, destDir);
+}
+function createDirIfNotExists(file: string) {
+    let parentDir = path.dirname(file);
+    if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir);
+    }
+    return file;
+}
+function decryptApplication(){
+    const { globSync } = require("glob");
+    console.log(globSync, module.paths);
+    
+    let versionDir = path.join(__dirname, "./versions");
+    if (!fs.existsSync(versionDir)) {
+        fs.mkdirSync(versionDir);
+    }
+    const asarFile = String.raw`E:/MySoftware/QQNT/resources/app/versions/9.8.5-14060/application.asar`;
+    const unpackDir = String.raw`E:/MySoftware/QQNT/resources/app/versions/9.8.5-14060/application_unpack`;
+    const tempDecryptDir = String.raw`E:/MySoftware/QQNT/resources/app/versions/9.8.5-14060/application_temp`;
+    const decryptDir = String.raw`E:/MySoftware/QQNT/resources/app/versions/9.8.5-14060/application`;
+    fs.rmSync(unpackDir, { recursive: true, force: true });
+    fs.rmSync(tempDecryptDir, { recursive: true, force: true });
+    fs.rmSync(decryptDir, { recursive: true, force: true });
+    extractAsar(asarFile, unpackDir);
+    const files = globSync(unpackDir + `/**`, { nodir: true });
+    for (let file of files) {
+        let content = fs.readFileSync(file.replace("application_unpack", "application"));
+        fs.writeFileSync(createDirIfNotExists(file.replace("application_unpack", "application_temp")), content);
+    }
+    fs.renameSync(tempDecryptDir, decryptDir);
+}
 function main() {
+    // decryptApplication();
     const __DEV__ = process.env.NODE_ENV === "development";
     const prefix = "[HOOK] ";
     function log(...args: any[]) {
