@@ -103,7 +103,7 @@ function main() {
         fs.writeFileSync(customCSSPath, "");
     }
     let qqCustomCSSWatcher = new FileWatcher(customCSSPath);
-    const myPreloadJS = HookPreload.toString() + "\n" + HookPreload.name + "();";
+    const myPreloadJS = HookPreload.toString() + "\n" + HookPreload.name + `(${__DEV__});`;
     electron.ipcMain.on("send-to-renderer", (event, arg) => {
         for (let window of electron.BrowserWindow.getAllWindows()) {
             let url = window.webContents.getURL();
@@ -112,6 +112,9 @@ function main() {
                 window.webContents.send(arg.event, arg.data);
             }
         }
+    });
+    electron.ipcMain.on("cesar-log", (event, ...args) => {
+        log(...args);
     });
     let proxyBrowserWindow = new Proxy(electron.BrowserWindow, {
         construct: function (target, argumentsList, newTarget) {
@@ -191,72 +194,38 @@ function main() {
             return window;
         }
     });
-    let proxyIpcMain = new Proxy(electron.ipcMain, {
+    const getHandler: (name: string) => ProxyHandler<any> = (module) => ({
         get: function (target, propKey, receiver) {
-            log("ipcMain get ", propKey);
             let value = Reflect.get(target, propKey, receiver);
+            // log(name + "." + propKey.toString(), ":", value);
             if (typeof value === "function") {
                 return new Proxy(value, {
                     apply: function (target, thisArg, argumentsList) {
-                        log("ipcMain", propKey, argumentsList);
-                        return Reflect.apply(target, thisArg, argumentsList);
+                        let value = Reflect.apply(target, thisArg, argumentsList);
+                        // 直接log Module会导致无限递归
+                        log(
+                            `${module}.${propKey.toString()}(`, 
+                            argumentsList.map(item => item instanceof Module ? item.id : item), 
+                            ")",
+                            // "===", value
+                        );
+                        return value;
                     },
+                    construct: function (target, argumentsList, newTarget) {
+                        let obj = Reflect.construct(target, argumentsList, newTarget);
+                        if(propKey === "Script") {
+                            argumentsList[0] = argumentsList[0].trim();
+                        }
+                        log(`new ${module}.${propKey.toString()}()`, argumentsList);
+                        return obj;
+                    }
                 });
+            } else {
+                log(`${module}.${propKey.toString()} ===`);
             }
             return value;
-        },
+        }
     });
-    let proxyApp = new Proxy(electron.app, {
-        get: function (app, propKey, receiver) {
-            log("app get ", propKey);
-            let value = Reflect.get(app, propKey, receiver);
-            if (typeof value === "function") {
-                return new Proxy(value, {
-                    apply: function (target, thisArg, argumentsList) {
-                        log("app apply", propKey, argumentsList);
-                        return Reflect.apply(target, app, argumentsList);
-                    },
-                });
-            }
-            return value;
-        },
-    });
-    let proxyProtocol = new Proxy(electron.protocol, {
-        get: function (target, propKey, receiver) {
-            log("protocol get ", propKey);
-            let value = Reflect.get(target, propKey, receiver);
-            if (typeof value === "function") {
-                return new Proxy(value, {
-                    apply: function (target, thisArg, argumentsList) {
-                        log("protocol", propKey, argumentsList);
-                        return Reflect.apply(target, thisArg, argumentsList);
-                    },
-                });
-            }
-            return value;
-        },
-    });
-    let proxyExec = new Proxy(child_process.exec, {
-        apply: function (target, thisArg, argumentsList) {
-            log("exec", argumentsList);
-            return Reflect.apply(target, thisArg, argumentsList);
-        },
-    });
-    const getHandler: ProxyHandler<any> = {
-        get: function (target, propKey, receiver) {
-            log("get", propKey);
-            let value = Reflect.get(target, propKey, receiver);
-            if (typeof value === "function") {
-                return new Proxy(value, {
-                    apply: function (target, thisArg, argumentsList) {
-                        log("apply", propKey, argumentsList);
-                        return Reflect.apply(target, thisArg, argumentsList);
-                    },
-                });
-            }
-            return value;
-        },
-    };
     Module.prototype.require = new Proxy(Module.prototype.require, {
         apply: function (requireTarget, thisArg: Module, argumentsList) {
             let [id] = argumentsList; 
@@ -268,128 +237,139 @@ function main() {
                         // 是因为 electron.BrowserWindow 的 descriptor 的 configurable 为 false 且 set 为 undefined，所以无法修改
                         if (propKey === "BrowserWindow") {
                             return proxyBrowserWindow;
-                        } 
-                        else if (propKey === "ipcMain" && __DEV__) {
-                            return proxyIpcMain;
-                        } 
-                        else if (propKey === "protocol" && __DEV__) {
-                            return proxyProtocol;
-                        } 
-                        // else if (propKey === "app" && __DEV__) {
-                        //     return proxyApp;
-                        // }
+                        } else if (__DEV__ && ["protocol"].includes(propKey.toString())) {
+                            return new Proxy(Reflect.get(target, propKey, receiver), getHandler("electron." + propKey.toString()));
+                        }
                         return Reflect.get(target, propKey, receiver);
                     }
                 });
-            } else if (argumentsList[0] == "child_process") {
-                return new Proxy(child_process, {
-                    get: function (target, propKey, receiver) {
-                        log("child_process get", propKey);
-                        if (propKey === "exec") {
-                            return proxyExec;
-                        }
-                        let value = Reflect.get(target, propKey, receiver);
-                        // if (typeof value === "function") {
-                        //     log("child_process function", propKey);
-                        //     return new Proxy(value, {
-                        //         apply: function (target, thisArg, argumentsList) {
-                        //             log("child_process apply", propKey, argumentsList);
-                        //             return Reflect.apply(target, thisArg, argumentsList);
-                        //         },
-                        //     });
-                        // }
-                        return value;
-                    }
-                });
             }
-            let m: Module = Reflect.apply(requireTarget, thisArg, argumentsList);
-            return m;
+            let value: Module = Reflect.apply(requireTarget, thisArg, argumentsList);
+            // 日志太多了
+            if (!__DEV__ || ["", 'fs'].includes(id)) {
+                return value;
+            } else
+                return new Proxy(value, getHandler(id));
         }
     });
 }
 main()
-// electron.app.on("ready", async () => {
-//     let electron = Module.prototype.require("electron");
-//     let window: Electron.BrowserWindow = new electron.BrowserWindow({
-//         width: 800,
-//         height: 600,
-//         webPreferences: {
-//             devTools: true,
-//             nodeIntegration: true,
-//             contextIsolation: false,
-//         },
-//     });
-//     window.loadURL("https://im.qq.com/pcqq/");
-//     window.webContents.on("dom-ready", async () => {
-//         window.webContents.openDevTools();
-//     });
-//     window.webContents.on("before-input-event", async (event, input) => {
-//         if (input.type === "keyDown" && input.key === "F12") {
-//             console.log("F12");
-//             window.webContents.openDevTools();
-//         }
-//     });
-//     window.focus();
-// });
-function HookPreload(){
-    function log(...args: any[]) {
-        console.groupCollapsed(`%cQQNT-Tools`, "color: #ff00ff", ...args);
-        console.trace();
-        console.groupEnd();
-    }
-    const electron = require('electron');
 
-    if ('__DEV_MODE__' in window && (window as any).__DEV_MODE__) {
-        let proxyContextBridge = new Proxy(electron.contextBridge, {
+function mock() {
+    electron.app.on("ready", async () => {
+        let electron = Module.prototype.require("electron");
+        let window: Electron.BrowserWindow = new electron.BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                devTools: true,
+                nodeIntegration: true,
+                contextIsolation: false,
+            },
+        });
+        window.loadURL("https://im.qq.com/pcqq/");
+        window.webContents.on("dom-ready", async () => {
+            window.webContents.openDevTools();
+        });
+        window.webContents.on("before-input-event", async (event, input) => {
+            if (input.type === "keyDown" && input.key === "F12") {
+                console.log("F12");
+                window.webContents.openDevTools();
+            }
+        });
+        window.focus();
+    });
+}
+function HookPreload(__DEV__: boolean = false) {
+    const electron = require('electron');
+    let log = (...args: any[]) => {
+        try{
+            electron.ipcRenderer.send("cesar-log", "[Render Preload]", ...args);
+        } catch(e) {
+            electron.ipcRenderer.send("cesar-log", "[Render Preload] Error", ...args);
+        }
+        console.log("QQNT-Tools", ...args);
+    }
+    log("Preload");
+    try {
+        function arrayToRepr(arr: any[]) {
+            return arr.map(item => {
+                if (typeof item === "object") {
+                    return JSON.stringify(item, (key, value) => {
+                        if(typeof value === "object" && key !== "") {
+                            return value.toString();
+                        }
+                        return value;
+                    });
+                } else if (typeof item === "string") {
+                    return item;
+                } else {
+                    return item;
+                }
+            })
+        }
+        const getHandler: (name: string) => ProxyHandler<any> = (module) => ({
             get: function (target, propKey, receiver) {
-                log("contextBridge get ", propKey);
                 let value = Reflect.get(target, propKey, receiver);
                 if (typeof value === "function") {
                     return new Proxy(value, {
                         apply: function (target, thisArg, argumentsList) {
-                            log("contextBridge", propKey, argumentsList);
-                            return Reflect.apply(target, thisArg, argumentsList);
+                            let value = Reflect.apply(target, thisArg, argumentsList);
+                            log(`${module}.${propKey.toString()}()`, arrayToRepr(argumentsList));
+                            return value;
                         },
-                    });
-                }
-                return value;
-            },
-        });
-        module.require = new Proxy(module.require, {
-            apply: function (target, thisArg, argumentsList) {
-                let value = Reflect.apply(target, thisArg, argumentsList);
-                ['vm', 'v8'].includes(argumentsList[0]) || log("Require", argumentsList[0], value);
-                if (argumentsList[0] == "electron") {
-                    return new Proxy(electron, {
-                        get: function (target, propKey, receiver) {
-                            if (propKey === "contextBridge") {
-                                return proxyContextBridge;
-                            } 
-                            return Reflect.get(target, propKey, receiver);
+                        construct: function (target, argumentsList, newTarget) {
+                            log(`new ${module}.${propKey.toString()}()`, arrayToRepr(argumentsList));
+                            return Reflect.construct(target, argumentsList, newTarget);
                         }
                     });
+                } else {
+                    log(`${module}.${propKey.toString()}`);
                 }
-                return Reflect.apply(target, thisArg, argumentsList);
+                return value;
             }
         });
+        if (__DEV__) {
+            module.require = new Proxy(module.require, {
+                apply: function (target, thisArg, argumentsList) {
+                    let value = Reflect.apply(target, thisArg, argumentsList);
+                    let id = argumentsList[0];
+                    ['vm', 'v8'].includes(id) || log("require", id);
+                    if (['electron'].includes(id)) {
+                        return new Proxy(electron, {
+                            get: function (target, propKey, receiver) {
+                                let value =  Reflect.get(target, propKey, receiver);
+                                if (propKey === "contextBridge") {
+                                    return new Proxy(value, getHandler("contextBridge"));;
+                                } 
+                                return value;
+                            }
+                        });
+                    }
+                    return new Proxy(value, getHandler(id));
+                }
+            });
+        }
+        electron.contextBridge.exposeInMainWorld('_preloadTools', {
+            // ipcRenderer: electron.ipcRenderer, // 不能直接暴露，原型修改被丢弃
+            ipcRenderer: {
+                // 错误的写法，由于安全原因，不能直接暴露
+                // on: electron.ipcRenderer.on,
+                on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => {
+                    log('ipcRenderer on', channel);
+                    electron.ipcRenderer.on(channel, listener);
+                },
+                send: (channel: string, ...args: any[]) => {
+                    log('ipcRenderer send', channel);
+                    electron.ipcRenderer.send(channel, ...args);
+                },
+                removeListener: (channel: string, listener: (...args: any[]) => void) => {
+                    log('ipcRenderer removeListener', channel);
+                    electron.ipcRenderer.removeListener(channel, listener);
+                }
+            },
+        } as PreloadTools)
+    } catch (e) {
+        log("Error", e);
     }
-    electron.contextBridge.exposeInMainWorld('_preloadTools', {
-        // ipcRenderer: electron.ipcRenderer, // 不能直接暴露，原型修改被丢弃
-        ipcRenderer: {
-            // 错误的写法，由于安全原因，不能直接暴露
-            // on: electron.ipcRenderer.on,
-            on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => {
-                log('ipcRenderer on', channel);
-                electron.ipcRenderer.on(channel, listener);
-            },
-            send: (channel: string, ...args: any[]) => {
-                log('ipcRenderer send', channel);
-                electron.ipcRenderer.send(channel, ...args);
-            },
-            removeListener: (channel: string, listener: (...args: any[]) => void) => {
-                log('ipcRenderer removeListener', channel);
-                electron.ipcRenderer.removeListener(channel, listener);
-            }
-        },
-    } as PreloadTools)
 }
