@@ -74,7 +74,7 @@ function main() {
             let injectCSSMap = new Map<string, string>();
             log("BrowserWindow construct", argumentsList);
             let preload = argumentsList[0].webPreferences.preload;
-            if (!preload.includes("qqnt-tools")) { // 判断preload是否已经被hook过
+            if (preload && !preload.includes("qqnt-tools")) { // 判断preload是否已经被hook过
                 let oldPreloadJS = fs.readFileSync(preload, "utf-8");
                 let newPreloadJS = myPreloadJS + "\n" + oldPreloadJS;
                 preload = path.resolve(__dirname, `preload-qqnt-tools-${hashString(newPreloadJS)}.js`);
@@ -87,9 +87,13 @@ function main() {
             let window: electron.BrowserWindow = Reflect.construct(target, argumentsList, newTarget);
             window.webContents.on("before-input-event", (event, input) => {
                 // Windows/Linux hotkeys
+                // log("before-input-event", input);
                 if (process.platform !== "darwin") {
                     if (input.key === "F12") {
-                        window.webContents.openDevTools();
+                        window.webContents.openDevTools({
+                            mode: "detach",
+                        });
+                        log('openDevTools', window.webContents.openDevTools.toString());
                         event.preventDefault();
                     }
                 }
@@ -188,10 +192,31 @@ function main() {
             return value;
         },
     });
-
-    Module.prototype.require = new Proxy(Module.prototype.require, {
+    let proxyExec = new Proxy(child_process.exec, {
         apply: function (target, thisArg, argumentsList) {
-            log("Require ", argumentsList[0]);
+            log("exec", argumentsList);
+            return Reflect.apply(target, thisArg, argumentsList);
+        },
+    });
+    const getHandler: ProxyHandler<any> = {
+        get: function (target, propKey, receiver) {
+            log("get", propKey);
+            let value = Reflect.get(target, propKey, receiver);
+            if (typeof value === "function") {
+                return new Proxy(value, {
+                    apply: function (target, thisArg, argumentsList) {
+                        log("apply", propKey, argumentsList);
+                        return Reflect.apply(target, thisArg, argumentsList);
+                    },
+                });
+            }
+            return value;
+        },
+    };
+    Module.prototype.require = new Proxy(Module.prototype.require, {
+        apply: function (requireTarget, thisArg: Module, argumentsList) {
+            let [id] = argumentsList; 
+            log("Require", id);
             if (argumentsList[0] == "electron") {
                 return new Proxy(electron, {
                     get: function (target, propKey, receiver) {
@@ -212,13 +237,56 @@ function main() {
                         return Reflect.get(target, propKey, receiver);
                     }
                 });
+            } else if (argumentsList[0] == "child_process") {
+                return new Proxy(child_process, {
+                    get: function (target, propKey, receiver) {
+                        log("child_process get", propKey);
+                        if (propKey === "exec") {
+                            return proxyExec;
+                        }
+                        let value = Reflect.get(target, propKey, receiver);
+                        // if (typeof value === "function") {
+                        //     log("child_process function", propKey);
+                        //     return new Proxy(value, {
+                        //         apply: function (target, thisArg, argumentsList) {
+                        //             log("child_process apply", propKey, argumentsList);
+                        //             return Reflect.apply(target, thisArg, argumentsList);
+                        //         },
+                        //     });
+                        // }
+                        return value;
+                    }
+                });
             }
-            return Reflect.apply(target, thisArg, argumentsList);
+            let m: Module = Reflect.apply(requireTarget, thisArg, argumentsList);
+            return m;
         }
     });
 }
 main()
-
+// electron.app.on("ready", async () => {
+//     let electron = Module.prototype.require("electron");
+//     let window: Electron.BrowserWindow = new electron.BrowserWindow({
+//         width: 800,
+//         height: 600,
+//         webPreferences: {
+//             devTools: true,
+//             nodeIntegration: true,
+//             contextIsolation: false,
+//         },
+//     });
+//     window.loadURL("https://im.qq.com/pcqq/");
+//     window.webContents.on("dom-ready", async () => {
+//         window.webContents.openDevTools();
+//     });
+//     window.webContents.on("before-input-event", async (event, input) => {
+//         if (input.type === "keyDown" && input.key === "F12") {
+//             console.log("F12");
+//             window.webContents.openDevTools();
+//         }
+//     });
+//     window.focus();
+// });
 function HookPreload(){
     function log(...args: any[]) {
         console.groupCollapsed(`%cQQNT-Tools`, "color: #ff00ff", ...args);
