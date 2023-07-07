@@ -6,6 +6,8 @@ import { EventEmitter } from "stream";
 import type { PreloadTools } from "../src-common/model";
 import asar from "asar";
 import util from 'util'
+const chii = require("chii");
+const net = require("net");
 
 function extractAsar(asarFile: string, destDir: string) {
     asar.extractAll(asarFile, destDir);
@@ -42,8 +44,38 @@ function decryptApplication(){
     }
     fs.renameSync(tempDecryptDir, decryptDir);
 }
+
+async function openDevTools(window: electron.BrowserWindow, port: number) {
+    const targets_url = `http://localhost:${port}/targets`;
+    const targets = await (await fetch(targets_url)).json();
+    console.log("targets", targets, "targets_url", targets_url);
+    const current_url = window.webContents.getURL();
+    for (const target of targets.targets.reverse()) {
+        if (target.url != current_url) {
+            continue;
+        }
+        const params = `?ws=localhost:${port}/client/qqnt_tools?target=${target.id}`;
+        const devtools_url = `http://localhost:${port}/front_end/chii_app.html${params}`;
+        const devtools_window = new electron.BrowserWindow();
+        devtools_window.loadURL(devtools_url);
+        return;
+    }
+}
+
 function main() {
     // common part
+    const port = (() => {
+        const server = net.createServer();
+        server.listen(0);
+        const { port } = server.address();
+        server.close();
+        return port;
+    })();
+    chii.start({ port });
+    electron.ipcMain.handle(
+        "qqnt_tools.chii_devtools.ready",
+        (event, message) => port
+    )
     const __DEV__ = process.env.NODE_ENV === "development";
     const prefix = "[HOOK]";
     Object.assign(util.inspect.defaultOptions, {
@@ -142,15 +174,13 @@ function main() {
 
             // common part
             let window: electron.BrowserWindow = Reflect.construct(target, argumentsList, newTarget);
-            window.webContents.on("before-input-event", (event, input) => {
+            window.webContents.on("before-input-event", async (event, input) => {
                 // Windows/Linux hotkeys
                 // log("before-input-event", input);
                 if (process.platform !== "darwin") {
                     if (input.key === "F12") {
-                        window.webContents.openDevTools({
-                            mode: "detach",
-                        });
-                        log('openDevTools', window.webContents.openDevTools.toString());
+                        await openDevTools(window, port);
+                        window.webContents.openDevTools();
                         event.preventDefault();
                     }
                 }
@@ -165,6 +195,26 @@ function main() {
             // qq part
             window.webContents.on("frame-created", async (event, {frame}) => {
                 // todo: 不知道为什么，frame.executeJavaScript 没作用，所以只能用 window.webContents.executeJavaScript
+                await window.webContents.executeJavaScript(`
+                function injectChiiDevtools(port) {
+                    const before_script = document.querySelector("#chii_devtools");
+                    if (before_script) {
+                        before_script.remove();
+                    }
+                    const url = \`http://localhost:${port}/target.js\`;
+                    const script = document.createElement("script");
+                    script.defer = "defer";
+                    script.src = url;
+                    script.id = "chii_devtools";
+                    document.head.appendChild(script);
+                }
+                window._preloadTools.chii_devtools().then((port) => {
+                    injectChiiDevtools(port);
+                    navigation.addEventListener("navigatesuccess", () => {
+                        injectChiiDevtools(port);
+                    });
+                });
+                `).catch((e) => { log("executeJavaScript error", e); });
                 qqPageJSWatcher.callAndOnchange(async (filePath) => {
                     log('qq-page.js changed', filePath);
                     let result = await window.webContents.executeJavaScript(fs.readFileSync(filePath, "utf-8").trim().replace(/export \{\};/, ""));
@@ -383,6 +433,9 @@ function HookPreload(__DEV__: boolean = false) {
                     electron.ipcRenderer.removeListener(channel, listener);
                 }
             },
+            chii_devtools: () => electron.ipcRenderer.invoke(
+                "qqnt_tools.chii_devtools.ready"
+            )
         } as PreloadTools)
     } catch (e) {
         log("Error", e);
