@@ -1,8 +1,8 @@
 import type { RendererNode } from "vue";
-import { VueComponent, logTrace, log, __DEV__, uniqueColor } from "../base";
+import { VueComponent, logTrace, log, uniqueColor } from "../base";
 
 
-export function hookVue3App() {
+export function hookVue3App(__DEV__ = false) {
     // ==UserScript==
     // @name         Hook Vue3 app
     // @version      1.0.3
@@ -115,17 +115,6 @@ export function hookVue3App() {
     }
 
     return vueHooked;
-}
-function isObject(value: any) {
-    return value && (typeof value === "object")
-}
-
-function isNode(value: any) {
-    return isObject(value) && value.nodeType > 0
-}
-// check if value is a proxy object
-function isProxy(value: any) {
-    return isObject(value) && !!value.__isProxy
 }
 // 这些元素输出太多日志了
 const BlackClass = [
