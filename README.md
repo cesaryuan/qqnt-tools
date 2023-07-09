@@ -55,7 +55,9 @@
 
 ## 致谢
 
-感谢 @steven026 大佬的 [Hook Vue3 app v1.0.3 [Vue3 app劫持 油猴库]-油猴中文网](https://bbs.tampermonkey.net.cn/thread-2886-1-1.html)
+感谢 @steven026 大佬的 [Hook Vue3 app v1.0.3 [Vue3 app劫持 油猴库]-油猴中文网](https://bbs.tampermonkey.net.cn/thread-2886-1-1.html) 提供的基础设施
+感谢 [@mo-jinran](https://github.com/mo-jinran) 大佬的 [LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT) 提供的插件平台
+感谢 [@mo-jinran](https://github.com/Flysoft-Studio) 大佬的 [QQNTim](https://github.com/Flysoft-Studio/QQNTim) 提供的灵感
 
 ## 免责声明
 
