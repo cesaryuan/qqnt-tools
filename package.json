@@ -4,7 +4,8 @@
     "@types/vue": "^2.0.0",
     "cross-env": "^7.0.3",
     "electron": "^25.2.0",
-    "esbuild": "^0.18.11"
+    "esbuild": "^0.18.11",
+    "ts-node": "^10.9.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production ts-node ./build.ts",
