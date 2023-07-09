@@ -79,8 +79,81 @@ Object.defineProperty(Object.prototype, "__logYellow", {
     },
 });
 
+
+let callBackIdMap = new Map<string, string>();
+function handleQQIPCMessage(direction: "renderer-to-main" | "main-to-renderer", args: any[]) {
+    const NOT_SHOW_DATA_ACTIONLIST = [
+        "nodeIKernelRecentContactListener/onRecentContactListChanged",
+        "nodeIKernelRecentContactListener/onFirstScreenRecentContactListChanged",
+        "nodeIKernelBuddyListener/onBuddyListChange",
+        "nodeIKernelProfileListener/onStatusUpdate",
+        "nodeIKernelProfileListener/onProfileDetailInfoChanged",
+        "nodeIKernelProfileListener/onProfileSimpleChanged",
+        "nodeIKernelMsgService/requestTianshuAdv",
+        "readFile",
+        "nodeIKernelMsgService/fetchStatusMgrInfo",
+        "getArkVersionManageMapFromMain",
+        "nodeIKernelGroupListener/onGroupListUpdate", // 群列表更新
+        "onNumSettingChanged",
+        "onThemeInfoChange",
+        "getThemeInitInfo"
+    ]
+    try{
+        let [{type, eventName, callbackId, ..._}, DATA] = args;
+        if (eventName.startsWith("ns-LoggerApi-")) {
+            return;
+        }
+        if (type === "request") {
+            if (direction === "main-to-renderer") {
+                let [{cmdName, cmdType, payload}] = DATA;
+                if (!(cmdName && cmdType)) {
+                    log(direction, type, ...eventName.__logGreen, ...DATA.__logYellow);
+                    return;
+                }
+                if (callbackId && callbackId.length > 0) {
+                    callBackIdMap.set(callbackId, cmdName);
+                }
+                if (NOT_SHOW_DATA_ACTIONLIST.includes(cmdName)) {
+                    payload = "Too long to show";
+                }
+                log(direction, type, ...eventName.__logGreen, "cmdName:", ...cmdName.__logGreen, "cmdType:", ...cmdType.__logGreen, "payload:", ...payload.__logYellow);
+            }
+            else {
+                let [action = "", data = ""] = DATA;
+                if (callbackId && callbackId.length > 0) {
+                    callBackIdMap.set(callbackId, action);
+                }
+                if (NOT_SHOW_DATA_ACTIONLIST.includes(action)) {
+                    data = "Too long to show";
+                }
+                log(direction, type, ...eventName.__logGreen, "action:", ...action.__logGreen, "data:", ...data.__logYellow);
+            }
+        } else if (type === "response") {
+            let action = callBackIdMap.get(callbackId);
+            if (NOT_SHOW_DATA_ACTIONLIST.includes(action!)) {
+                DATA = "Too long to show";
+            }
+            DATA = DATA ?? "";
+            log(direction, type, ...eventName.__logGreen, "responseAction:", ...action!.__logGreen, "data:", ...DATA.__logYellow);
+        } else {
+            log(direction, type, ...eventName.__logRed, ...DATA.__logRed);
+        }
+    } catch (e) {
+        log(..."****ERROR****".__logRed, e, direction, ...args.__logRed);
+    }
+}
+enum ConsoleMessageLevel {
+    verbose = 0,
+    info = 1,
+    warning = 2,
+    error = 3,
+}
 export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
-    let callBackIdMap = new Map<string, string>();
+    let url = window.webContents.getURL();
+    let fragment = url.split("#")[1] ?? url.split("/").pop();
+    window.webContents.on("console-message", (event, level, message, line, sourceId) => {
+        console.log(`[RenderConsole-${fragment}]`, ConsoleMessageLevel[level] + ":", message, line, sourceId);
+    });
     window.webContents.emit = new Proxy(window.webContents.emit, {
         apply: function (target, thisArg, argumentsList) {
             let [event, ...listenerArgs] = argumentsList;
@@ -89,48 +162,19 @@ export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
                 return result;
             }
             if (event === "ipc-message" || event === "ipc-message-sync") {
-                type argsType = [event: electron.IpcMainEvent, channel: string, ...args: any[]];
+                type argsType = [event: any, channel: string, ...args: any[]];
                 let [_, channel, ...args] = listenerArgs as argsType;
                 if (channel.startsWith("IPC_UP_")) {
-                    try{
-                        let [{type, eventName, ...more}, DATA] = args;
-                        if (eventName.startsWith("ns-LoggerApi-")) {
-                            return result;
-                        }
-                        if (type === "request") {
-                            let [action = "", data = ""] = DATA;
-                            let callbackId = more.callbackId;
-                            if (callbackId && callbackId.length > 0) {
-                                callBackIdMap.set(callbackId, action);
-                            }
-                            log(channel, type, ...eventName.__logGreen, "action:", ...action.__logGreen, "data:", ...data.__logYellow);
-                        } else if (type === "response") {
-                            log(channel, type, ...eventName.__logGreen, ...DATA.__logYellow);
-                        } else {
-                            log(channel, type, ...eventName.__logRed, ...DATA.__logRed);
-                        }
-                    } catch (e) {
-                        log(..."****ERROR****".__logRed, e, ...argumentsList.__logRed);
-                    }
+                    handleQQIPCMessage("renderer-to-main", args);
                     return result;
+                } else {
+                    log("webContents", window.webContents.id, "ipcRenderer.send(channel:", channel, "args:", args, ")");
                 }
-
-                log("webContents", window.webContents.id, "ipcRenderer.send(channel:", channel, "args:", args, ")");
             }
             else if (event === "-ipc-message") {
                 // log("webContents", window.webContents.id, event, "listenerArgs:", listenerArgs.slice(1));
                 return result;
             }
-            else if (event === "console-message") {
-                let [_, level, message, line, sourceId] = listenerArgs;
-                enum ConsoleMessageLevel {
-                    verbose = 0,
-                    info = 1,
-                    warning = 2,
-                    error = 3,
-                }
-                log("webContents", window.webContents.id, "console-message", ConsoleMessageLevel[level], message, line, sourceId);
-            } 
             else {
                 log("webContents", window.webContents.id, "emit", event);
             }
@@ -143,18 +187,9 @@ export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
             let result = Reflect.apply(target, thisArg, argumentsList);
             // log("webContents", window.webContents.id, "send(channel:", channel, "args:", args, ")");
             if(channel.startsWith("IPC_DOWN_")) {
-                try {
-                    let [{type, eventName, ...more}, DATA] = args;
-                    if (type === "response") {
-                        let callbackId = more.callbackId;
-                        let action = callBackIdMap.get(callbackId);
-                        log(channel, type, ...eventName.__logGreen, "responseTo:", ...action!.__logGreen);
-                    } else {
-                        log(channel, type, ...eventName.__logGreen);
-                    }
-                } catch (e) {
-                    log(..."****ERROR****".__logRed, e, ...argumentsList.__logRed);
-                }
+                handleQQIPCMessage("main-to-renderer", args);
+            } else {
+                log("webContents", window.webContents.id, "send(channel:", channel, "args:", args, ")");
             }
             return result;
         },
