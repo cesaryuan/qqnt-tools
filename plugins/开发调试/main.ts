@@ -40,13 +40,13 @@ const getHandler: (name: string) => ProxyHandler<any> = (module) => ({
 });
 
 export function onLoad() {
-    Object.assign(util.inspect.defaultOptions, {
-        showHidden: false,
-        depth: 0,
-        colors: true,
-        compact: 3,
-        maxStringLength: 80,
-    });
+    // Object.assign(util.inspect.defaultOptions, {
+    //     showHidden: false,
+    //     depth: 0,
+    //     colors: true,
+    //     compact: 3,
+    //     maxStringLength: 80,
+    // });
 }
 
 declare global {
