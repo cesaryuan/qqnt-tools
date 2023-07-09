@@ -2,14 +2,16 @@
   "devDependencies": {
     "@types/node": "^20.4.1",
     "@types/vue": "^2.0.0",
-    "asar": "^3.2.0",
     "cross-env": "^7.0.3",
     "electron": "^25.2.0",
-    "esbuild": "^0.18.11",
-    "glob": "^10.3.2"
+    "esbuild": "^0.18.11"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production ts-node ./build.ts",
     "watch": "cross-env NODE_ENV=development ts-node ./build.ts --watch"
+  },
+  "dependencies": {
+    "asar": "^3.2.0",
+    "glob": "^10.3.3"
   }
 }
