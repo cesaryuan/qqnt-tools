@@ -1,0 +1,22 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "解密application.asar",
+    "slug": "decrypt_application_asar",
+    "description": "解密application.asar",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "main": "./dist/main.js"
+    }
+}

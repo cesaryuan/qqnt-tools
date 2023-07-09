@@ -1,7 +1,19 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./src-main" },
-    // { "path": "./src-page" }
-  ]
+  "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "Node",
+      "target": "ESNext",
+      "strictNullChecks": true,
+      "strictFunctionTypes": true,
+      "outDir": "dist",
+      "noEmit": true,
+      "lib": [
+        "DOM",
+        "DOM.Iterable",
+        "ES2021.WeakRef",
+        "ESNext"
+      ],
+  },
+  "include": ["plugins/"],
+  "exclude": ["node_modules", "**/node_modules/*"]
 }

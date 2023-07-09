@@ -1,0 +1,22 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "快捷查看用户聊天记录",
+    "slug": "btnToShowUserRecord",
+    "description": "在用户头像的上下文菜单中添加选项，显示用户的消息记录",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "renderer": "./dist/renderer.js"
+    }
+}

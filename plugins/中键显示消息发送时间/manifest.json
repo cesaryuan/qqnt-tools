@@ -1,0 +1,22 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "中键显示消息发送时间",
+    "slug": "showMsgTimeOnMiddleClick",
+    "description": "在用户按下鼠标中键时显示消息发送时间",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "renderer": "./dist/renderer.js"
+    }
+}

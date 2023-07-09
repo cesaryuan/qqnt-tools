@@ -1,0 +1,23 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "exposePreloadTools",
+    "slug": "exposePreloadTools",
+    "description": "Base Plugin: Expose PreloadTools to window",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "preload": "./dist/preload.js",
+        "main": "./dist/main.js"
+    }
+}

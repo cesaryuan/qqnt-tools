@@ -1,0 +1,23 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "开发调试",
+    "slug": "cesar_develop_tools",
+    "description": "用于开发和调试的工具集合",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "main": "./dist/main.js",
+        "renderer": "./dist/renderer.js"
+    }
+}

@@ -1,9 +1,6 @@
-import type { ComponentInternalInstance } from "vue";
-
-export const __DEV__ = window.__DEV_MODE__;
 
 class Logger {
-    static globalLogger = new Logger("QQNT-Tools");
+    // static globalLogger = new Logger("QQNT-Tools");
     constructor(private name: string) {}
     log(...args: any[]) {
         console.log(`[${this.name}]`, ...args);
@@ -19,8 +16,10 @@ class Logger {
     }
 }
 
+export var logger = /* @__PURE__ */ new Logger("Cesar");
+
 export function log(...args: any[]) {
-    Logger.globalLogger.log(...args);
+    logger.log(...args);
 }
 
 export function logTrace(args: any[], {additional, color}: {additional?: () => void, color?: string} = {}) {
@@ -31,25 +30,48 @@ export function logTrace(args: any[], {additional, color}: {additional?: () => v
     console.groupEnd();
 }
 
-export function sendToRenderer(targetUrl: string, event: string, data: any) {
-    log("send-to-renderer", targetUrl, event, data);
-    window._preloadTools.ipcRenderer.send("send-to-renderer", {
-        targetUrl,
-        event,
-        data,
+export async function waitFor<T>(condition: () => T, {
+    timeout = 5000,
+    interval = 100,
+} = {}){
+    let result = condition();
+    if (result) return result;
+    return new Promise<T>((resolve, reject) => {
+        let timer = setTimeout(() => {
+            // try {onTimeout();} catch (e) {
+            // finally {
+                clearInterval(intervalTimer);
+                reject(new Error(`waitFor timeout`));
+            // }
+        }, timeout);
+        let intervalTimer = setInterval(() => {
+            let result = condition();
+            if (result) {
+                clearInterval(intervalTimer);
+                clearTimeout(timer);
+                resolve(result);
+            }
+        }, interval);
     });
 }
 
+export function insertCSS(css: string) {
+    let style = document.createElement("style");
+    style.innerHTML = css;
+    document.head.appendChild(style);
+    return style;
+}
+    
 export async function waitForElement(selector: string, {
     timeout = 5000,
     childList = true, 
     subtree = true,
     observeTarget
 }: {
-    timeout: number,
-    childList: boolean,
-    subtree: boolean,
-    observeTarget: Node,
+    timeout?: number,
+    childList?: boolean,
+    subtree?: boolean,
+    observeTarget?: Node,
 } = {}) {
     return new Promise<Element>((resolve, reject) => {
         const el = document.querySelector(selector);
@@ -80,17 +102,14 @@ export async function waitForElement(selector: string, {
     });
 }
 
-export abstract class BasePlugin extends EventTarget implements QQPlugin {
-    abstract readonly name: string;
-    abstract readonly description: string;
-    abstract readonly version: string;
-    abstract readonly match: string | RegExp;
-    readonly logger = new Logger(this.name);
-    // static _vueHooked: WeakMap<Element, ComponentInternalInstance[]>;
-    abstract readonly load(): Promise<void>;
-    unload(): void {
-        this.dispatchEvent(new CustomEvent("unload"));
+export function whenNavigated(action: () => void) {
+    if (!window.location.href.includes("#/blank")) {
+        action();
+        return;
     }
+    navigation.addEventListener("navigatesuccess", (e) => {
+        action();
+    });
 }
 
 export function htmlStringToElement(html: string) {
@@ -99,20 +118,12 @@ export function htmlStringToElement(html: string) {
     return template.content.firstElementChild as HTMLElement;
 }
 
-export type VueComponent = ComponentInternalInstance;
-
-declare module "vue" {
-    interface ComponentInternalInstance {
-        bum: (() => void)[];
-        ctx: any;
-    }
-}
-
 export function sleep(time: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
     });
 }
+
 let objColorMap = new WeakMap<any, string>();     
 export function uniqueColor(obj: any) {
     if (!objColorMap.has(obj)) {
@@ -171,7 +182,7 @@ export async function addMenuItemToNextMenu(text: string, callback: (menu: Eleme
     const menu = await waitForElement("#qContextMenu", {
         subtree: false,
         observeTarget: document.body,
-    });
+    }) as HTMLElement;
     const top = Number.parseFloat(menu.style.top.slice(0, -2));
     menu.style.top = `${top - 28}px`;
     let menuItem = htmlStringToElement(`<a class="q-context-menu-item q-context-menu-item--normal" aria-disabled="false" role="menuitem" tabindex="-1" title=""><span class="q-context-menu-item__text">查看聊天记录</span></a>`)

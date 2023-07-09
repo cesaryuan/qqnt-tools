@@ -1,0 +1,23 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "pipeConsoleToMain",
+    "slug": "pipeConsoleToMain",
+    "description": "Base Plugin: Redirects console output to main process",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "renderer": "dist/renderer.js",
+        "main": "dist/main.js"
+    }
+}

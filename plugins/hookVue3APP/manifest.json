@@ -1,0 +1,22 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "HookVue3APP",
+    "slug": "hookVue3APP",
+    "description": "Base Plugin: Hook Vue3 APP",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "renderer": "./dist/renderer.js"
+    }
+}

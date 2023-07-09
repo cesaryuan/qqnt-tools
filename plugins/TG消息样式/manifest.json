@@ -1,0 +1,22 @@
+{
+    "manifest_version": 1,
+    "type": "extension",
+    "name": "TG消息样式",
+    "slug": "messageLikeTelegram",
+    "description": "在聊天窗口中合并相同用户的连续消息",
+    "version": "0.1.0",
+    "author": [
+        {
+            "name": "cesaryuan",
+            "link": "https://github.com/cesaryuan"
+        }
+    ],
+    "platform": [
+        "win32",
+        "linux",
+        "darwin"
+    ],
+    "injects": {
+        "renderer": "./dist/renderer.js"
+    }
+}
