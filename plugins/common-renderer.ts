@@ -187,7 +187,7 @@ export async function addMenuItemToNextMenu(text: string, callback: (menu: Eleme
     menu.style.top = `${top - 28}px`;
     let menuItem = htmlStringToElement(`<a class="q-context-menu-item q-context-menu-item--normal" aria-disabled="false" role="menuitem" tabindex="-1" title=""><span class="q-context-menu-item__text">查看聊天记录</span></a>`)
     menuItem.querySelector(".q-context-menu-item__text")!.textContent = text;
-    menu.appendChild(menuItem);
+    menu.insertBefore(menuItem, menu.firstElementChild);
     menuItem.addEventListener("click", () => {
         callback(menu);
     });
