@@ -61,8 +61,10 @@ async function main() {
     ) => {
         console.log("handleMsgUserContextMenu", "senderUid", msgRecord.senderUid);
         let result = originhandleMsgUserContextMenu?.apply(groupChat, [{ e, msgRecord }, event]);
+        let groupId = groupChat.uid;
         setTimeout(async () => {
             addMenuItemToNextMenu("查看聊天记录", async () => {
+                // await _preloadTools!.qqIPC.openExternalWindow("MsgRecordWindow", { peerUid: groupId, chatType: 2 });
                 let openRecord = (await waitForElement(
                     "#id-func-bar-MessageRecord"
                 )) as HTMLElement;
