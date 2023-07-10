@@ -81,7 +81,8 @@ Object.defineProperty(Object.prototype, "__logYellow", {
 
 
 let callBackIdMap = new Map<string, string>();
-function handleQQIPCMessage(direction: "renderer-to-main" | "main-to-renderer", args: any[]) {
+function handleQQIPCMessage(channel: string, args: [QQ.IpcMsgHeader, any]) {
+    let direction = channel.startsWith("IPC_UP") ? "renderer-to-main" : "main-to-renderer";
     const NOT_SHOW_DATA_ACTIONLIST = [
         "nodeIKernelRecentContactListener/onRecentContactListChanged",
         "nodeIKernelRecentContactListener/onFirstScreenRecentContactListChanged",
@@ -98,16 +99,23 @@ function handleQQIPCMessage(direction: "renderer-to-main" | "main-to-renderer", 
         "onThemeInfoChange",
         "getThemeInitInfo"
     ]
+    const GENERATE_CALL_EXPRESSION = [
+        // "openUrl",
+        // "openExternalWindow"
+    ]
     try{
-        let [{type, eventName, callbackId, ..._}, DATA] = args;
+        let [msgHeader, msgDetail] = args
+        let {type, eventName, callbackId, promiseStatue, ...restHeaderArgs} = msgHeader;
         if (eventName.startsWith("ns-LoggerApi-")) {
             return;
         }
+        if (restHeaderArgs && Object.keys(restHeaderArgs).length > 0)
+            log("restHeaderArgs:", ...restHeaderArgs.__logYellow);
         if (type === "request") {
             if (direction === "main-to-renderer") {
-                let [{cmdName, cmdType, payload}] = DATA;
+                let [{cmdName, cmdType, payload}] = msgDetail;
                 if (!(cmdName && cmdType)) {
-                    log(direction, type, ...eventName.__logGreen, ...DATA.__logYellow);
+                    log(direction, type, "eventName:", ...eventName.__logGreen, ...msgDetail.__logYellow);
                     return;
                 }
                 if (callbackId && callbackId.length > 0) {
@@ -116,27 +124,35 @@ function handleQQIPCMessage(direction: "renderer-to-main" | "main-to-renderer", 
                 if (NOT_SHOW_DATA_ACTIONLIST.includes(cmdName)) {
                     payload = "Too long to show";
                 }
-                log(direction, type, ...eventName.__logGreen, "cmdName:", ...cmdName.__logGreen, "cmdType:", ...cmdType.__logGreen, "payload:", ...payload.__logYellow);
+                log(direction, type, "eventName:", ...eventName.__logGreen, "cmdName:", ...cmdName.__logGreen, "cmdType:", ...cmdType.__logGreen, "payload:", ...payload.__logYellow);
             }
             else {
-                let [action = "", data = ""] = DATA;
+                let [action = "undefined", ...data] = msgDetail;
                 if (callbackId && callbackId.length > 0) {
                     callBackIdMap.set(callbackId, action);
                 }
                 if (NOT_SHOW_DATA_ACTIONLIST.includes(action)) {
                     data = "Too long to show";
                 }
-                log(direction, type, ...eventName.__logGreen, "action:", ...action.__logGreen, "data:", ...data.__logYellow);
+                log(direction, type, "eventName:", ...eventName.__logGreen, "action:", ...action.__logGreen, "data:", ...data.__logYellow);
+                if (GENERATE_CALL_EXPRESSION.includes(action)) {
+                    let expresion = `window._preloadTools.ipcRenderer.send("IPC_UP_2", ${JSON.stringify(msgHeader, null, 4)}, ${JSON.stringify(msgDetail, null, 4)})`
+                    log(expresion)
+                }
             }
         } else if (type === "response") {
-            let action = callBackIdMap.get(callbackId);
+            let action = callBackIdMap.get(callbackId!) ?? "Unknown";
             if (NOT_SHOW_DATA_ACTIONLIST.includes(action!)) {
-                DATA = "Too long to show";
+                msgDetail = "Too long to show";
             }
-            DATA = DATA ?? "";
-            log(direction, type, ...eventName.__logGreen, "responseAction:", ...action!.__logGreen, "data:", ...DATA.__logYellow);
+            msgDetail = msgDetail ?? "";
+            log(direction, type, "eventName:", ...eventName.__logGreen, "responseAction:", ...action!.__logGreen, "data:", ...msgDetail.__logYellow);
+            if (GENERATE_CALL_EXPRESSION.includes(action) && direction === "main-to-renderer") {
+                let expresion = `ipcRenderer.on("${channel}", (_event, ${JSON.stringify(msgHeader, null, 4)}, ${JSON.stringify(msgDetail, null, 4)}) => {})`
+                log(expresion)
+            }
         } else {
-            log(direction, type, ...eventName.__logRed, ...DATA.__logRed);
+            log(direction, type, ...eventName.__logRed, ...msgDetail.__logRed);
         }
     } catch (e) {
         log(..."****ERROR****".__logRed, e, direction, ...args.__logRed);
@@ -148,6 +164,7 @@ enum ConsoleMessageLevel {
     warning = 2,
     error = 3,
 }
+
 export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
     let url = window.webContents.getURL();
     let fragment = url.split("#")[1] ?? url.split("/").pop();
@@ -162,10 +179,9 @@ export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
                 return result;
             }
             if (event === "ipc-message" || event === "ipc-message-sync") {
-                type argsType = [event: any, channel: string, ...args: any[]];
-                let [_, channel, ...args] = listenerArgs as argsType;
+                let [_, channel, ...args] = listenerArgs as [any, ...Parameters<QQ.RenderToMainIPCMessage>];
                 if (channel.startsWith("IPC_UP_")) {
-                    handleQQIPCMessage("renderer-to-main", args);
+                    handleQQIPCMessage(channel, args);
                     return result;
                 } else {
                     log("webContents", window.webContents.id, "ipcRenderer.send(channel:", channel, "args:", args, ")");
@@ -187,7 +203,7 @@ export function onBrowserWindowCreated(window: electron.BrowserWindow, plugin) {
             let result = Reflect.apply(target, thisArg, argumentsList);
             // log("webContents", window.webContents.id, "send(channel:", channel, "args:", args, ")");
             if(channel.startsWith("IPC_DOWN_")) {
-                handleQQIPCMessage("main-to-renderer", args);
+                handleQQIPCMessage(channel, args as any);
             } else {
                 log("webContents", window.webContents.id, "send(channel:", channel, "args:", args, ")");
             }
