@@ -99,7 +99,7 @@ function handleQQIPCMessage(channel: string, args: [QQ.IpcMsgHeader, any]) {
         "onThemeInfoChange",
         "getThemeInitInfo"
     ]
-    const GENERATE_CALL_EXPRESSION = [
+    const GENERATE_CALL_EXPRESSION: string[] = [
         // "openUrl",
         // "openExternalWindow"
     ]
