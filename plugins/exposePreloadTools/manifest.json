@@ -2,7 +2,7 @@
     "manifest_version": 1,
     "type": "extension",
     "name": "exposePreloadTools",
-    "slug": "exposePreloadTools",
+    "slug": "cesarExposePreloadTools",
     "description": "Base Plugin: Expose PreloadTools to window",
     "version": "0.1.0",
     "author": [

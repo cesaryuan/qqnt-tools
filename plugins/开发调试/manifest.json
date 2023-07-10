@@ -2,7 +2,7 @@
     "manifest_version": 1,
     "type": "extension",
     "name": "开发调试",
-    "slug": "cesar_develop_tools",
+    "slug": "cesarDevelopTools",
     "description": "用于开发和调试的工具集合",
     "version": "0.1.0",
     "author": [

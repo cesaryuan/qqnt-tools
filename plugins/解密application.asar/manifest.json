@@ -2,7 +2,7 @@
     "manifest_version": 1,
     "type": "extension",
     "name": "解密application.asar",
-    "slug": "decrypt_application_asar",
+    "slug": "cesarDecryptApplicationAsar",
     "description": "解密application.asar",
     "version": "0.1.0",
     "author": [

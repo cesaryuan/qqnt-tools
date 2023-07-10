@@ -2,7 +2,7 @@
     "manifest_version": 1,
     "type": "extension",
     "name": "自用样式",
-    "slug": "Cesar自用样式",
+    "slug": "cesarStyle",
     "description": "自用样式",
     "version": "0.1.0",
     "author": [
