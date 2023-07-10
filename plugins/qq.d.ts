@@ -5,6 +5,18 @@ declare var navigation: {
 } & EventTarget;
 
 declare namespace QQ {
+    type RenderToMainIPCMessage = (
+        channel: string,
+        msgHeader: IpcMsgHeader,
+        msgDetail: [action?: string, data?: any]
+    ) => void;
+    type IpcMsgHeader = {
+        type: "request" | "response";
+        eventName: string;
+        callbackId?: string;
+        promiseStatue?: string;
+    };
+    
     interface MessageProps {
         isNewAio: boolean;
         uid: string;
